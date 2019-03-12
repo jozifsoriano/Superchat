@@ -13,8 +13,8 @@ TODO:
   * [ ] learn asio
   * [ ] learn readline
     * [x] tab completion
-  * [ ] class diagram w/ methods and attributes
-  * [ ] for each class, provide a written description
+  * [~] class diagram w/ methods and attributes
+  * [~] for each class, provide a written description
   * [ ] ""   ""   ""  , list if client, server, or both
   * [ ] update requirements table
 - [ ] code
