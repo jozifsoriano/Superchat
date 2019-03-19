@@ -9,6 +9,7 @@
   * [ ] user specific requirements
   * [ ] use cases should be based on actions and what the system does, not things in the system.
 - [ ] **project design**
+  * [ ] figure out github
   * [ ] learn ncurses
   * [ ] learn asio
   * [ ] learn readline
