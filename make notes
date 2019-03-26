@@ -20,3 +20,42 @@ chat_server:chat_server.o
 
 clean:
 	-rm -f chat_client chat_server chat_client.o chat_server.o
+
+==================================================
+SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
+INCLUDES := $(wildcard $(INCDIR)/*.hpp)
+OBJECTS  := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+rm       = rm -f
+
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+	$(CXX) $(CPPFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
+
+$(BINDIR)/$(OBJECTS): $(OBJDIR)/$(OBJECTS).o
+	$(LINKER) -o $@ $(LFLAGS) $(OBJECTS)
+	@echo "Linking complete!"
+====================================================
+LIB_C = chat_client
+LIB_S = chat_server
+
+TARGET = $(LIB_C) $(LIB_S)
+
+all:
+	$(MY_TARGETS)
+
+.PHONY: $(LIB_C)
+$(LIB_C):
+	cd $(LIB_C)
+	make
+
+.PHONY: $(LIB_S)
+$(LIB_S):
+	cd $(LIB_S)
+	make
+
+allclean:
+	cd $(LIB_C)/
+	make clean
+	cd ..
+	cd $(LIB_S)/
+	make clean

@@ -1,35 +1,24 @@
-TARGET = Superchat
+LIB_C = chat_client
+LIB_S = chat_server
 
-CXX = g++
-CPPFLAGS = -Wall -O0 -g -std=c++11 -I/Users/josephsoriano/Downloads/boost_1_69_0/
+TARGET = $(LIB_C) $(LIB_S)
 
-LINKER = g++
-LFLAGS = -Wall -I. -lm -lpthread -lncurses
+all:
+	$(MY_TARGETS)
 
-SRCDIR = src
-OBJDIR = obj
-BINDIR = bin
-INCDIR = include
+.PHONY: $(LIB_C)
+$(LIB_C):
+	cd $(LIB_C)
+	make
 
-SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
-INCLUDES := $(wildcard $(INCDIR)/*.hpp)
-OBJECTS  := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
-rm       = rm -f
+.PHONY: $(LIB_S)
+$(LIB_S):
+	cd $(LIB_S)
+	make
 
-$(BINDIR)/$(TARGET): $(OBJECTS)
-	$(LINKER) -o $@ $(LFLAGS) $(OBJECTS)
-	@echo "Linking complete!"
-
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
-	$(CXX) $(CPPFLAGS) -c $< -o $@
-	@echo "Compiled "$<" successfully!"
-
-.PHONY: clean
-clean:
-	@$(rm) $(OBJECTS)
-	@echo "Cleanup complete!"
-
-.PHONY: remove
-remove: clean
-	@$(rm) $(BINDIR)/$(TARGET)
-	@echo "Executable removed!"
+allclean:
+	cd $(LIB_C)/
+	make clean
+	cd ..
+	cd $(LIB_S)/
+	make clean
