@@ -1,23 +1,35 @@
-CXX=g++
+TARGET = Superchat
 
-CPPFLAGS=-I/home/bdavis/asio_install/include
+CXX = g++
+CPPFLAGS = -Wall -O0 -g -std=c++11 -I/Users/josephsoriano/Downloads/boost_1_69_0/
 
-CXXFLAGS=-Wall -O0 -g -std=c++11
+LINKER = g++
+LFLAGS = -Wall -I. -lm -lpthread -lncurses
 
-all: chat_client chat_server
+SRCDIR = src
+OBJDIR = obj
+BINDIR = bin
+INCDIR = include
 
-COMMON_HEADER = chat_message.hpp
+SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
+INCLUDES := $(wildcard $(INCDIR)/*.hpp)
+OBJECTS  := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+rm       = rm -f
 
-chat_client.o: ${COMMON_HEADER} chat_client.cpp
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	$(LINKER) -o $@ $(LFLAGS) $(OBJECTS)
+	@echo "Linking complete!"
 
-chat_client:chat_client.o
-	${CXX} -o chat_client chat_client.o -lpthread -lncurses
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+	$(CXX) $(CPPFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
 
-chat_server.o: ${COMMON_HEADER} chat_message.hpp chat_server.cpp
-
-chat_server:chat_server.o
-	${CXX} -o chat_server chat_server.o -lpthread
-
+.PHONY: clean
 clean:
-	-rm -f chat_client chat_server chat_client.o chat_server.o
+	@$(rm) $(OBJECTS)
+	@echo "Cleanup complete!"
 
+.PHONY: remove
+remove: clean
+	@$(rm) $(BINDIR)/$(TARGET)
+	@echo "Executable removed!"
