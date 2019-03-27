@@ -22,6 +22,7 @@ clean:
 	-rm -f chat_client chat_server chat_client.o chat_server.o
 
 ==================================================
+
 SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
 INCLUDES := $(wildcard $(INCDIR)/*.hpp)
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
@@ -34,7 +35,9 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 $(BINDIR)/$(OBJECTS): $(OBJDIR)/$(OBJECTS).o
 	$(LINKER) -o $@ $(LFLAGS) $(OBJECTS)
 	@echo "Linking complete!"
+
 ====================================================
+
 LIB_C = chat_client
 LIB_S = chat_server
 
@@ -59,3 +62,14 @@ allclean:
 	cd ..
 	cd $(LIB_S)/
 	make clean
+
+====================================================
+
+$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	@$(CC) $(CFLAGS) $(INCDEP) -MM $(SRCDIR)/$*.$(SRCEXT) > $(BUILDDIR)/$*.$(DEPEXT)
+	@cp -f $(BUILDDIR)/$*.$(DEPEXT) $(BUILDDIR)/$*.$(DEPEXT).tmp
+	@sed -e 's|.*:|$(BUILDDIR)/$*.$(OBJEXT):|' < $(BUILDDIR)/$*.$(DEPEXT).tmp > $(BUILDDIR)/$*.$(DEPEXT)
+	@sed -e 's/.*://' -e 's/\\$$//' < $(BUILDDIR)/$*.$(DEPEXT).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(BUILDDIR)/$*.$(DEPEXT)
+	@rm -f $(BUILDDIR)/$*.$(DEPEXT).tmp
