@@ -12,8 +12,8 @@
 #include <deque>
 #include <iostream>
 #include <thread>
-#include "asio.hpp"
 #include <ncurses.h>
+#include "asio.hpp"
 #include "../include/chat_message.hpp"
 
 

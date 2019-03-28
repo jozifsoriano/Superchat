@@ -2,22 +2,22 @@
 
 
 
-
 # TODO:
-- [ ] look at our requirements and evaluate
-  * [ ] requirements table too broad
+- [x] look at our requirements and evaluate
+  * [x] requirements table too broad
   * [ ] user specific requirements
   * [ ] use cases should be based on actions and what the system does, not things in the system.
-- [ ] **project design**
-  * [ ] figure out github
-  * [ ] learn ncurses
-  * [ ] learn asio
+- [x] **project design**
+  * [x] figure out github
+  * [x] learn ncurses
+  * [x] learn asio
   * [ ] learn readline
     * [x] tab completion
-  * [~] class diagram w/ methods and attributes
-  * [~] for each class, provide a written description
-  * [ ] ""   ""   ""  , list if client, server, or both
-  * [ ] update requirements table
+  * [x] class diagram w/ methods and attributes
+  * [x] for each class, provide a written description
+  * [x] ""   ""   ""  , list if client, server, or both
+  * [x] update requirements table
 - [ ] code
+  * [ ] make
 - [ ] testing requirements and report
 - [ ] presentation
