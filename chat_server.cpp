@@ -16,7 +16,7 @@
 #include <set>
 #include <utility>
 #include "asio.hpp"
-#include "../include/chat_message.hpp"
+#include "chat_message.hpp"
 
 using asio::ip::tcp;
 
@@ -59,6 +59,7 @@ public:
       recent_msgs_.pop_front();
 
     for (auto participant: participants_)
+      //for all particpants, deliver msg
       participant->deliver(msg);
   }
 

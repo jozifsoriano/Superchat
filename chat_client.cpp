@@ -14,9 +14,9 @@
 #include <thread>
 #include <ncurses.h>
 #include "asio.hpp"
-#include "../include/chat_message.hpp"
+#include "chat_message.hpp"
 
-
+char str[150];
 using asio::ip::tcp;
 
 typedef std::deque<chat_message> chat_message_queue;
@@ -51,7 +51,7 @@ public:
     asio::post(io_context_, [this]() { socket_.close(); });
   }
 
-private:
+protected:
   void do_connect(const tcp::resolver::results_type& endpoints)
   {
     asio::async_connect(socket_, endpoints,
@@ -122,12 +122,73 @@ private:
         });
   }
 
-private:
+protected:
   asio::io_context& io_context_;
   tcp::socket socket_;
   chat_message read_msg_;
   chat_message_queue write_msgs_;
 };
+
+
+class interface: public chat_client{
+  WINDOW *win;
+  int *userID;
+public:
+  interface(asio::io_context& io_context,
+      const tcp::resolver::results_type& endpoints)
+    : io_context_(io_context),
+      socket_(io_context){
+        create_interface();
+        do_connect(endpoints);
+  }
+/*chat_client(asio::io_context& io_context,
+    const tcp::resolver::results_type& endpoints)
+  : io_context_(io_context),
+    socket_(io_context)
+{
+  do_connect(endpoints);
+}
+
+
+str[] = body();
+*/
+  void create_interface(){
+    initscr();
+    noecho();
+    cbreak();
+
+
+
+    int vertical_max = 20, horizontal_max = 80;
+
+    int start_y = (LINES - vertical_max)/2;
+    int start_x = (COLS - horizontal_max)/2;
+    win=newwin(vertical_max,horizontal_max,start_y,start_x);
+    touchwin(win);
+    wrefresh(win);
+
+  }
+  virtual void do_read_body()
+  {
+    asio::async_read(socket_,
+        asio::buffer(read_msg_.body(), read_msg_.body_length()),
+        [this](std::error_code ec, std::size_t /*length*/)
+        {
+          if (!ec)
+          {
+            //std::cout.write(read_msg_.body(), read_msg_.body_length());
+            //std::cout << "\n";
+            printw(read_msg_.body());
+            do_read_header();
+          }
+          else
+          {
+            socket_.close();
+          }
+        });
+  }
+};
+
 
 int main(int argc, char* argv[])
 {
@@ -138,6 +199,7 @@ int main(int argc, char* argv[])
       std::cerr << "Usage: chat_client <host> <port>\n";
       return 1;
     }
+    interface win;
 
     asio::io_context io_context;
 
@@ -148,6 +210,8 @@ int main(int argc, char* argv[])
     std::thread t([&io_context](){ io_context.run(); });
 
     char line[chat_message::max_body_length + 1];
+
+    //getting input
     while (std::cin.getline(line, chat_message::max_body_length + 1))
     {
       chat_message msg;
