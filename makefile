@@ -1,63 +1,22 @@
-#Compiler and Linker
-CC          := g++
+CXX=g++
 
-#The Target Binary Program
-TARGET      := program
+CPPFLAGS=-I/Users/josephsoriano/Downloads/boost_1_69_0/
 
-#The Directories, Source, Includes, Objects, Binary and Resources
-SRCDIR      := src
-INCDIR      := inc
-BUILDDIR    := obj
-TARGETDIR   := bin
-RESDIR      := res
-SRCEXT      := cpp
-DEPEXT      := d
-OBJEXT      := o
+CXXFLAGS=-Wall -O0 -g -std=c++11
 
-#Flags, Libraries and Includes
-CFLAGS      := -Wall -O0 -g -std=c++11 -I/Users/josephsoriano/Downloads/boost_1_69_0/
-LIB         := -lm -lpthread -lncurses
-INC         := -I$(INCDIR) -I/usr/local/include
-INCDEP      := -I$(INCDIR)
+all: chat_client chat_server
 
-#---------------------------------------------------------------------------------
-#DO NOT EDIT BELOW THIS LINE
-#---------------------------------------------------------------------------------
-SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
+COMMON_HEADER = chat_message.hpp
 
-#Defauilt Make
-all: resources $(TARGET)
+chat_client.o: ${COMMON_HEADER} chat_client.cpp
 
-#Remake
-remake: cleaner all
+chat_client:chat_client.o
+	${CXX} -o chat_client chat_client.o
 
-#Copy Resources from Resources Directory to Target Directory
-resources: directories
-	@cp $(RESDIR)/* $(TARGETDIR)/
+chat_server.o: ${COMMON_HEADER} chat_message.hpp chat_server.cpp
 
-#Make the Directories
-directories:
-	@mkdir -p $(TARGETDIR)
-	@mkdir -p $(BUILDDIR)
+chat_server:chat_server.o
+	${CXX} -o chat_server chat_server.o -lpthread
 
-#Clean only Objecst
 clean:
-	@$(RM) -rf $(BUILDDIR)
-
-#Full Clean, Objects and Binaries
-cleaner: clean
-	@$(RM) -rf $(TARGETDIR)
-
-#Pull in dependency info for *existing* .o files
--include $(OBJECTS:.$(OBJEXT)=.$(DEPEXT))
-
-#Link
-$(TARGET): $(OBJECTS)
-	$(CC) -o $(TARGETDIR)/$(TARGET) $^ $(LIB)
-
-#Compile
-$()
-
-#Non-File Targets
-.PHONY: all remake clean cleaner resources
+	-rm -f chat_client chat_server chat_client.o chat_server.o
