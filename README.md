@@ -28,7 +28,7 @@
 - [ ] presentation
 
 
-GIT INSTRUCTIONS:
+#GIT INSTRUCTIONS:
 1. Open Git Bash or whatever terminal your going to use.
 	-if your not using Git Bash make sure you have git installed
 
