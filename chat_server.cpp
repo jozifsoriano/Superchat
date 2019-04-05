@@ -92,6 +92,7 @@ public:
 	/*      chatroom will receive all messages               */
     for (auto participant: participants_)
 		participant->deliver(msg);
+		
   }
 
 private:

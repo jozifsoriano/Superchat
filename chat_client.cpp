@@ -134,21 +134,21 @@ int main(int argc, char* argv[])
 {
   try
   {
-	
+
     boost::asio::io_context io_context;
-	
+
 	/*       InternetProtocol::endpoint endpoint_type           */
 	/*
 		endpoint object; type defined in "basic_resolver.hpp"
 	*/
-    
-	/* 
-	
-		the resolver object has been created 
-		
+
+	/*
+
+		the resolver object has been created
+
 		so the resolver object should reach out to function inside
 			the resolver class to the "resolve" function
-	
+
 	"resolve()"
 * This function is used to resolve a query into a list of endpoint entries.
    *
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
    * range.
    *
    * @throws boost::system::system_error Thrown on failure.
-	
+
   results_type resolve(const query& q)
   {
     boost::system::error_code ec;
@@ -167,74 +167,119 @@ int main(int argc, char* argv[])
         this->get_implementation(), q, ec);
     boost::asio::detail::throw_error(ec, "resolve");
     return r;
-  }	
-		
+  }
+
 results_type resolve(const query& q, boost::system::error_code& ec)
   {
     return this->get_service().resolve(this->get_implementation(), q, ec);
   }
-	
+
 results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
       BOOST_ASIO_STRING_VIEW_PARAM service)
   {
     return resolve(host, service, resolver_base::flags());
   }
-		
+
 	*/
-	
+
 	/* we will make this starting port number */
-	std::string port_num = "9000";
+	std::string user_chatroom = "9000";
 	std::string LOCAL_HOST = "127.0.0.1";
-	
+
 	tcp::resolver resolver(io_context);
-	/* 
-		
+	/*
+
 		WHEN THE PROGRAM NEEDS TO RUN A NEW SECTION OF THIS CODE (i.e. USER CREATES A NEW CHATROOM)
 		REMEMBER THE RESOLVE FUNCTION TAKES 2 STRING LITERALS AS ARGUMENTS; EXPLANATION FOR
 		RESOLVE() IS STATED ABOVE
-		
+
 	*/
-	
+
+  /*
+    ./chat_client 127.0.0.1 9000
+    Hello
+    Hello
+
+  */
+
 	/* WE MIGHT BE ABLE TO DISCARD THE AUTO KEYWORD HERE TO POSSIBLY */
 	/* DO SOME SORT OF SMART POINTER WORK HERE AND STORE EACH THREAD */
 	/* AND CHAT_CLIENT OBJECT IN SOME SORT OF CONTAINER AND PULL     */
 	/* THEM OUT ONLY WHEN NEEDED BY USER                             */
+    /*
     auto endpoints = resolver.resolve(LOCAL_HOST, port_num);
     chat_client c(io_context, endpoints);
     std::thread t([&io_context](){ io_context.run(); });
-	
     char line[chat_message::max_body_length + 1];
-		
+    */
 	/*
-		
+
 		Objectives of Friday:
-	
+
 			=> Get a super basic program up and running.
-			
+
 			=> this includes something to the effect of the code below
-		
+
 			=> these 3 options should be focused on first
-	
-			=> 
+
+			=>
 	*/
-		//std::cout << "WELCOME TO SUPERCHAT!\n";
-		/*
-		std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
-		std::cout << "1.) Create a chat\n2.) Enter a room\n3.) Leave SUPERCHAT\nSC> ";
-		*/
-		
-	    while (std::cin.getline(line, chat_message::max_body_length + 1))
-	    {
-			chat_message msg;
-	      	msg.body_length(std::strlen(line));
-	      	std::memcpy(msg.body(), line, msg.body_length());
-	      	msg.encode_header();
-			//msg.message_to_server();
-			c.write(msg);
-	    }
-		
-    c.close();
-    t.join();
+    char compare_string[100];
+  std::cout << "WELCOME TO SUPERCHAT!\n";
+    //char input[50];
+    int user_choice; // will be a number between 1-3
+    int quit_loop = 1;
+    while ( quit_loop )
+    {
+      std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
+      std::cout << "1.) Create a chat\n2.) Enter a room\n3.) Leave(quit) SUPERCHAT\n";
+      while ( user_choice != 3 )
+      {
+        std::cout << "\n\n<sUpErChAt> ";
+        std::cin >> user_choice;
+
+        if ( user_choice == 1)
+        {
+
+        }
+
+        else if ( user_choice == 2)
+        {
+          std::cout << "\nEnter room number: ";
+          std::cin >> user_chatroom;
+          auto endpoints = resolver.resolve(LOCAL_HOST, user_chatroom);
+          chat_client c(io_context, endpoints);
+          std::thread t([&io_context](){ io_context.run(); });
+          // "line" user input BEFORE it is sent to other user
+          char line[chat_message::max_body_length + 1];
+          while (std::cin.getline(line, chat_message::max_body_length + 1))
+    	    {
+    			    chat_message msg;
+    	      	msg.body_length(std::strlen(line));
+    	      	std::memcpy(msg.body(), line, msg.body_length());
+
+              std::strcpy(compare_string, line);
+    	      	msg.encode_header();
+    			//msg.message_to_server();
+              if ( strcmp(compare_string,"/exit")==0)
+              {
+                break;
+              }
+    			c.write(msg);
+          //std::string compare_string = c.write(msg);
+    	    }
+
+          c.close();
+          // waits for thread to finish
+          t.join();
+          // ************************* //
+        }
+      }
+      continue;
+      quit_loop = 0;
+
+    }
+
   }
   catch (std::exception& e)
   {
