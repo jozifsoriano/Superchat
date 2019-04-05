@@ -22,6 +22,25 @@ clean:
 	-rm -f chat_client chat_server chat_client.o chat_server.o
 
 ==================================================
+BUILD_DIR = build
+SRC_DIR = src
+SOURCES = $(shell find $(SRC_DIR)/ -name "*.cpp")
+TARGET  = program
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
+
+default: $(TARGET)
+
+.SECONDEXPANSION:
+
+$(OBJECTS) : $$(patsubst $(BUILD_DIR)/%.o,$(SRC_DIR)/%.c,$$@)
+        mkdir -p $(@D)
+        $(CC) -c -o $@ $(CFLAGS) $<
+
+$(TARGET): $(OBJECTS)
+        $(CC) -o $@ $(CFLAGS) $^
+
+.PHONY: default
+==================================================
 
 SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
 INCLUDES := $(wildcard $(INCDIR)/*.hpp)

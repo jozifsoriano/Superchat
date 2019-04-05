@@ -7,24 +7,25 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-
+#include <string.h>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
 #include <thread>
-#include <ncurses.h>
 #include "asio.hpp"
+#include <ncurses.h>
 #include "chat_message.hpp"
 
-char str[150];
-using asio::ip::tcp;
+using boost::asio::ip::tcp;
 
 typedef std::deque<chat_message> chat_message_queue;
 
+char LOCAL_HOST[10] = "127.0.0.1";
+char*a = LOCAL_HOST;
 class chat_client
 {
 public:
-  chat_client(asio::io_context& io_context,
+  chat_client(boost::asio::io_context& io_context,
       const tcp::resolver::results_type& endpoints)
     : io_context_(io_context),
       socket_(io_context)
@@ -34,7 +35,7 @@ public:
 
   void write(const chat_message& msg)
   {
-    asio::post(io_context_,
+    boost::asio::post(io_context_,
         [this, msg]()
         {
           bool write_in_progress = !write_msgs_.empty();
@@ -48,13 +49,13 @@ public:
 
   void close()
   {
-    asio::post(io_context_, [this]() { socket_.close(); });
+    boost::asio::post(io_context_, [this]() { socket_.close(); });
   }
 
-protected:
+private:
   void do_connect(const tcp::resolver::results_type& endpoints)
   {
-    asio::async_connect(socket_, endpoints,
+    boost::asio::async_connect(socket_, endpoints,
         [this](std::error_code ec, tcp::endpoint)
         {
           if (!ec)
@@ -66,8 +67,8 @@ protected:
 
   void do_read_header()
   {
-    asio::async_read(socket_,
-        asio::buffer(read_msg_.data(), chat_message::header_length),
+    boost::asio::async_read(socket_,
+        boost::asio::buffer(read_msg_.data(), chat_message::header_length),
         [this](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec && read_msg_.decode_header())
@@ -83,8 +84,8 @@ protected:
 
   void do_read_body()
   {
-    asio::async_read(socket_,
-        asio::buffer(read_msg_.body(), read_msg_.body_length()),
+    boost::asio::async_read(socket_,
+        boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
         [this](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
@@ -102,8 +103,8 @@ protected:
 
   void do_write()
   {
-    asio::async_write(socket_,
-        asio::buffer(write_msgs_.front().data(),
+    boost::asio::async_write(socket_,
+        boost::asio::buffer(write_msgs_.front().data(),
           write_msgs_.front().length()),
         [this](std::error_code ec, std::size_t /*length*/)
         {
@@ -122,105 +123,116 @@ protected:
         });
   }
 
-protected:
-  asio::io_context& io_context_;
+private:
+  boost::asio::io_context& io_context_;
   tcp::socket socket_;
   chat_message read_msg_;
   chat_message_queue write_msgs_;
 };
 
-
-class interface: public chat_client{
-  WINDOW *win;
-  int *userID;
-public:
-  interface(asio::io_context& io_context,
-      const tcp::resolver::results_type& endpoints)
-    : io_context_(io_context),
-      socket_(io_context){
-        create_interface();
-        do_connect(endpoints);
-  }
-/*chat_client(asio::io_context& io_context,
-    const tcp::resolver::results_type& endpoints)
-  : io_context_(io_context),
-    socket_(io_context)
-{
-  do_connect(endpoints);
-}
-
-
-str[] = body();
-*/
-  void create_interface(){
-    initscr();
-    noecho();
-    cbreak();
-
-
-
-    int vertical_max = 20, horizontal_max = 80;
-
-    int start_y = (LINES - vertical_max)/2;
-    int start_x = (COLS - horizontal_max)/2;
-    win=newwin(vertical_max,horizontal_max,start_y,start_x);
-    touchwin(win);
-    wrefresh(win);
-
-  }
-  virtual void do_read_body()
-  {
-    asio::async_read(socket_,
-        asio::buffer(read_msg_.body(), read_msg_.body_length()),
-        [this](std::error_code ec, std::size_t /*length*/)
-        {
-          if (!ec)
-          {
-            //std::cout.write(read_msg_.body(), read_msg_.body_length());
-            //std::cout << "\n";
-            printw(read_msg_.body());
-            do_read_header();
-          }
-          else
-          {
-            socket_.close();
-          }
-        });
-  }
-};
-
-
 int main(int argc, char* argv[])
 {
   try
   {
-    if (argc != 3)
-    {
-      std::cerr << "Usage: chat_client <host> <port>\n";
-      return 1;
-    }
-    interface win;
-
-    asio::io_context io_context;
-
-    tcp::resolver resolver(io_context);
-    auto endpoints = resolver.resolve(argv[1], argv[2]);
+	
+    boost::asio::io_context io_context;
+	
+	/*       InternetProtocol::endpoint endpoint_type           */
+	/*
+		endpoint object; type defined in "basic_resolver.hpp"
+	*/
+    
+	/* 
+	
+		the resolver object has been created 
+		
+		so the resolver object should reach out to function inside
+			the resolver class to the "resolve" function
+	
+	"resolve()"
+* This function is used to resolve a query into a list of endpoint entries.
+   *
+   * @param q A query object that determines what endpoints will be returned.
+   *
+   * @returns A range object representing the list of endpoint entries. A
+   * successful call to this function is guaranteed to return a non-empty
+   * range.
+   *
+   * @throws boost::system::system_error Thrown on failure.
+	
+  results_type resolve(const query& q)
+  {
+    boost::system::error_code ec;
+    results_type r = this->get_service().resolve(
+        this->get_implementation(), q, ec);
+    boost::asio::detail::throw_error(ec, "resolve");
+    return r;
+  }	
+		
+results_type resolve(const query& q, boost::system::error_code& ec)
+  {
+    return this->get_service().resolve(this->get_implementation(), q, ec);
+  }
+	
+results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
+      BOOST_ASIO_STRING_VIEW_PARAM service)
+  {
+    return resolve(host, service, resolver_base::flags());
+  }
+		
+	*/
+	
+	/* we will make this starting port number */
+	std::string port_num = "9000";
+	std::string LOCAL_HOST = "127.0.0.1";
+	
+	tcp::resolver resolver(io_context);
+	/* 
+		
+		WHEN THE PROGRAM NEEDS TO RUN A NEW SECTION OF THIS CODE (i.e. USER CREATES A NEW CHATROOM)
+		REMEMBER THE RESOLVE FUNCTION TAKES 2 STRING LITERALS AS ARGUMENTS; EXPLANATION FOR
+		RESOLVE() IS STATED ABOVE
+		
+	*/
+	
+	/* WE MIGHT BE ABLE TO DISCARD THE AUTO KEYWORD HERE TO POSSIBLY */
+	/* DO SOME SORT OF SMART POINTER WORK HERE AND STORE EACH THREAD */
+	/* AND CHAT_CLIENT OBJECT IN SOME SORT OF CONTAINER AND PULL     */
+	/* THEM OUT ONLY WHEN NEEDED BY USER                             */
+    auto endpoints = resolver.resolve(LOCAL_HOST, port_num);
     chat_client c(io_context, endpoints);
-
     std::thread t([&io_context](){ io_context.run(); });
-
+	
     char line[chat_message::max_body_length + 1];
-
-    //getting input
-    while (std::cin.getline(line, chat_message::max_body_length + 1))
-    {
-      chat_message msg;
-      msg.body_length(std::strlen(line));
-      std::memcpy(msg.body(), line, msg.body_length());
-      msg.encode_header();
-      c.write(msg);
-    }
-
+		
+	/*
+		
+		Objectives of Friday:
+	
+			=> Get a super basic program up and running.
+			
+			=> this includes something to the effect of the code below
+		
+			=> these 3 options should be focused on first
+	
+			=> 
+	*/
+		//std::cout << "WELCOME TO SUPERCHAT!\n";
+		/*
+		std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
+		std::cout << "1.) Create a chat\n2.) Enter a room\n3.) Leave SUPERCHAT\nSC> ";
+		*/
+		
+	    while (std::cin.getline(line, chat_message::max_body_length + 1))
+	    {
+			chat_message msg;
+	      	msg.body_length(std::strlen(line));
+	      	std::memcpy(msg.body(), line, msg.body_length());
+	      	msg.encode_header();
+			//msg.message_to_server();
+			c.write(msg);
+	    }
+		
     c.close();
     t.join();
   }
