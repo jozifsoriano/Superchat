@@ -33,7 +33,7 @@
 #include "asio.hpp"
 #include "chat_message.hpp"
 
-using boost::asio::ip::tcp;
+using asio::ip::tcp;
 //typedef std::map<int,string> chat
 int id = 0;
 #define MAX_LENGTH 255
@@ -90,8 +90,12 @@ public:
 	/*   there is a reason why this loop is here!            */
 	/* it has to be here because whoever is in this sepcific */
 	/*      chatroom will receive all messages               */
-    for (auto participant: participants_)
-		participant->deliver(msg);
+
+  /* auto: For variables, specifies that the type of the variable that is
+  being declared will be automatically deduced from its initializer.*/
+    for (auto participant: participants_){
+		    participant->deliver(msg);
+    }
   }
 
 private:
@@ -136,8 +140,8 @@ private:
   void do_read_header()
   {
     auto self(shared_from_this());
-    boost::asio::async_read(socket_,
-        boost::asio::buffer(read_msg_.data(), chat_message::header_length),
+    asio::async_read(socket_,
+        asio::buffer(read_msg_.data(), chat_message::header_length),
         [this, self](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec && read_msg_.decode_header())
@@ -154,8 +158,8 @@ private:
   void do_read_body()
   {
     auto self(shared_from_this());
-    boost::asio::async_read(socket_,
-        boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
+    asio::async_read(socket_,
+        asio::buffer(read_msg_.body(), read_msg_.body_length()),
         [this, self](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
@@ -175,8 +179,8 @@ private:
   void do_write()
   {
     auto self(shared_from_this());
-    boost::asio::async_write(socket_,
-        boost::asio::buffer(write_msgs_.front().data(),
+    asio::async_write(socket_,
+        asio::buffer(write_msgs_.front().data(),
           write_msgs_.front().length()),
         [this, self](std::error_code ec, std::size_t /*length*/)
         {
@@ -206,7 +210,7 @@ private:
 class chat_server
 {
 public:
-  chat_server(boost::asio::io_context& io_context,
+  chat_server(asio::io_context& io_context,
       const tcp::endpoint& endpoint)
     : acceptor_(io_context, endpoint)
   {
@@ -246,7 +250,7 @@ int main(int argc, char* argv[])
       return 1;
     }*/
 
-    boost::asio::io_context io_context;
+    asio::io_context io_context;
 
 	/* container of servers in case of need of more than 1 server */
     std::list<chat_server> servers;
@@ -274,21 +278,14 @@ int main(int argc, char* argv[])
 
 	int port_num = 9000;
 
-	for ( int i = port_num; i < (port_num+=10); i++)
+	for ( int i = port_num; i < (port_num+10); i++)
 	{
-
+    tcp::endpoint tempendpoint(tcp::v4(), i);
+    printf("New ports: %d \n",i);
+    servers.emplace_back(io_context, tempendpoint);
 	}
 
-	tcp::endpoint endpoint1(tcp::v4(), 9000);
-	servers.emplace_back(io_context, endpoint1);
-
-	tcp::endpoint endpoint2(tcp::v4(), 9001);
-	servers.emplace_back(io_context, endpoint2);
-
-	tcp::endpoint endpoint3(tcp::v4(), 9002);
-	servers.emplace_back(io_context, endpoint3);
-
-    io_context.run();
+  io_context.run();
 
   }
   catch (std::exception& e)

@@ -18,5 +18,10 @@ chat_server.o: ${COMMON_HEADER} chat_message.hpp chat_server.cpp
 chat_server:chat_server.o
 	${CXX} -o chat_server chat_server.o -lpthread
 
+runs:
+	./chat_server
+
+runc:
+	./chat_client
 clean:
 	-rm -f chat_client chat_server chat_client.o chat_server.o
