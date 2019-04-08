@@ -184,6 +184,7 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
 
 	/* we will make this starting port number */
 	std::string user_chatroom = "9000";
+  std::string user_create_room = "9000";
 	std::string LOCAL_HOST = "127.0.0.1";
 
 	tcp::resolver resolver(io_context);
@@ -228,18 +229,43 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
   std::cout << "WELCOME TO SUPERCHAT!\n";
     //char input[50];
     int user_choice; // will be a number between 1-3
+
     int quit_loop = 1;
     while ( quit_loop )
     {
       std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
       std::cout << "1.) Create a chat\n2.) Enter a room\n3.) Leave(quit) SUPERCHAT\n";
-      while ( user_choice != 3 )
+      while ( user_choice != 3)
       {
         std::cout << "\n\n<sUpErChAt> ";
         std::cin >> user_choice;
 
         if ( user_choice == 1)
         {
+          std::cout<<"Enter a room number to create new chatroom";
+          std::cin>>user_create_room;
+          auto endpoints = resolver.resolve(LOCAL_HOST, user_create_room);
+          chat_client c(io_context, endpoints);
+          std::thread t([&io_context](){ io_context.run(); });
+          // "line" user input BEFORE it is sent to other user
+          char line[chat_message::max_body_length + 1];
+          while (std::cin.getline(line, chat_message::max_body_length + 1))
+    	    {
+    			    chat_message msg;
+    	      	msg.body_length(std::strlen(line));
+    	      	std::memcpy(msg.body(), line, msg.body_length());
+
+              std::strcpy(compare_string, line);
+    	      	msg.encode_header();
+    			//msg.message_to_server();
+              if ( strcmp(compare_string,"/exit")==0)
+              {
+                break;
+              }
+    			c.write(msg);
+          //std::string compare_string = c.write(msg);
+    	    }
+
 
         }
 
