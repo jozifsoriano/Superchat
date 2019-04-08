@@ -245,7 +245,14 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
           //for now lets make only 2 chatrooms lobby 9000 and another user_chatroom
           std::cout<<"Enter a room number to create new chatroom";
           std::cin>>user_create_room;
-
+          if (user_create_room = "9000")
+          {
+            std::cout<<"****WELCOME TO LOBBY****";
+          }
+          else
+          {
+              std::cout<<"****Welcome to Room"<<user_create_room<<"****";
+          }
           auto endpoints = resolver.resolve(LOCAL_HOST, user_create_room);
           chat_client c(io_context, endpoints);
           std::thread t([&io_context](){ io_context.run(); });
@@ -280,8 +287,16 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
           {
             std::cout<<"No such chatroom exist\n";
             std::cout<<"available chatrooms:\n"<<"9000(lobby)\n"<<user_create_room<<"\n";
-            std::cout<<"Enter room number from available rooms:";
+            std::cout<<"Enter room number from available rooms or create one:";
             std::cin>>user_chatroom;
+          }
+          if (user_chatroom = "9000")
+          {
+            std::cout<<"****WELCOME TO LOBBY****";
+          }
+          else
+          {
+              std::cout<<"****Welcome to Room"<< user_chatroom<<"****";
           }
           auto endpoints = resolver.resolve(LOCAL_HOST, user_chatroom);
           chat_client c(io_context, endpoints);
