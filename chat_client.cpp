@@ -94,11 +94,9 @@ private:
         {
           if (!ec)
           {
-            if(last_sent_msg!=read_msg_.body()){
-              std::cout.write(read_msg_.body(), read_msg_.body_length());
-              std::cout << "\n";
-              do_read_header();
-            }
+            std::cout.write(read_msg_.body(), read_msg_.body_length());
+            std::cout << "\n";
+            do_read_header();
           }
           else
           {
@@ -134,7 +132,6 @@ private:
   tcp::socket socket_;
   chat_message read_msg_;
   chat_message_queue write_msgs_;
-  std::string last_sent_msg;
 };
 
 

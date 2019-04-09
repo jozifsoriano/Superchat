@@ -23,5 +23,15 @@ runs:
 
 runc:
 	./chat_client
+
+directories:
+	-mkdir bin
+	-mkdir src
+	-mkdir res
+	-mkdir include
+	-mkdir obj
+
+
 clean:
 	-rm -f chat_client chat_server chat_client.o chat_server.o
+	-rm -rf bin src res include obj
