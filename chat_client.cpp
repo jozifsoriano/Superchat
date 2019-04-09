@@ -245,7 +245,7 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
           //for now lets make only 2 chatrooms lobby 9000 and another user_chatroom
           std::cout<<"Enter a room number to create new chatroom";
           std::cin>>user_create_room;
-          if (user_create_room = "9000")
+          if (user_create_room == "9000")
           {
             std::cout<<"****WELCOME TO LOBBY****";
           }
@@ -281,7 +281,7 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
         else if ( user_choice == 2)
         {
           std::cout << "\nEnter room number: ";
-          std::cin >> user_chatroom;
+          std::cin >>  user_chatroom;
           //for now lets suppose there are only 2 chatrooms lobby and another
           if(user_chatroom != "9000" || user_chatroom != user_create_room)
           {
@@ -290,7 +290,7 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
             std::cout<<"Enter room number from available rooms or create one:";
             std::cin>>user_chatroom;
           }
-          if (user_chatroom = "9000")
+          if (user_chatroom == "9000")
           {
             std::cout<<"****WELCOME TO LOBBY****";
           }
