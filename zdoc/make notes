@@ -1,22 +1,36 @@
+#linker compiler
 CXX=g++
 
+#flags and libs
 CPPFLAGS=-I/Users/josephsoriano/Downloads/boost_1_69_0/
+CXXFLAGS=-Wall -O0 -g -std=c++11 -lpthread $(INCDIR)/chat_message.hpp
 
-CXXFLAGS=-Wall -O0 -g -std=c++11
+SRCDIR      := src
+INCDIR      := include
+OBJDIR	    := obj
+BUILDDIR    := bin
+RESDIR      := res
+SRCEXT      := cpp
+OBJEXT      := o
 
-all: chat_client chat_server
 
-COMMON_HEADER = chat_message.hpp
+all: $(BUILDDIR)/chat_client $(BUILDDIR)/chat_server
 
-chat_client.o: ${COMMON_HEADER} chat_client.cpp
+$(OBJDIR)/chat_client.o: $(SRCDIR)/chat_client.cpp
 
-chat_client:chat_client.o
-	${CXX} -o chat_client chat_client.o
+$(OBJDIR)/chat_server.o: $(SRCDIR)/chat_server.cpp
 
-chat_server.o: ${COMMON_HEADER} chat_message.hpp chat_server.cpp
+$(BUILDDIR)/chat_client:$(OBJDIR)/chat_client.o
+	${CXX} -o $(BUILDDIR)/chat_client $(OBJDIR)/chat_client.o
 
-chat_server:chat_server.o
-	${CXX} -o chat_server chat_server.o -lpthread
+$(BUILDDIR)/chat_server:$(OBJDIR)/chat_server.o
+	${CXX} -o $(BUILDDIR)/chat_server $(OBJDIR)/chat_server.o
+
+runs:
+	$(BUILDDIR)/./chat_server
+
+runc:
+	$(BUILDDIR)/./chat_client
 
 clean:
 	-rm -f chat_client chat_server chat_client.o chat_server.o
