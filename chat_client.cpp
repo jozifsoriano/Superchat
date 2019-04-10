@@ -52,10 +52,6 @@ public:
     asio::post(io_context_, [this]() { socket_.close(); });
   }
 
-  void set_last_sent_msg(std::string input){
-      last_sent_msg = input;
-  }
-
 private:
   void do_connect(const tcp::resolver::results_type& endpoints)
   {
@@ -153,7 +149,6 @@ int main(int argc, char* argv[])
     while (std::cin.getline(line, chat_message::max_body_length + 1))
     {
       chat_message msg;
-      c.set_last_sent_msg(line);
       msg.body_length(std::strlen(line));
       std::memcpy(msg.body(), line, msg.body_length());
       msg.encode_header();

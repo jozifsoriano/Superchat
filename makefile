@@ -18,6 +18,12 @@ chat_server.o: ${COMMON_HEADER} chat_message.hpp chat_server.cpp
 chat_server:chat_server.o
 	${CXX} -o chat_server chat_server.o -lpthread
 
+practice:
+	$(CXX) chat_gui.cpp -lncurses #-lreadline #ncurse_gui.hpp
+
+runp:
+	./a.out
+
 runs:
 	./chat_server
 
@@ -33,5 +39,5 @@ directories:
 
 
 clean:
-	-rm -f chat_client chat_server chat_client.o chat_server.o
+	-rm -f chat_client chat_server chat_client.o chat_server.o a.out
 	-rm -rf bin src res include obj

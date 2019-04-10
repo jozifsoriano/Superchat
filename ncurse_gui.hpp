@@ -2,10 +2,10 @@
 #define NC_GUI_HPP
 
 #include <ncurses.h>
-#include <string.h>
+#include <string>
 
 class interface{
-  WINDOW win;
+  WINDOW *win;
   int *userID;
 public:
   void create_room_box();
@@ -46,7 +46,10 @@ public:
 };
 
 class menu: public interface{
-  
+public:
+  menu();
+  void create_room();
+  ~menu();
 
 };
 
@@ -59,9 +62,15 @@ class command{
   std::string input;
 public:
   command(std::string c);
+private:
+  void help();
+  void mute();
   void create_room();
-  void display_room_list
+  void display_room_list();
   void exit_client();
+  void broadcast();
+  void transfer();
+  ~command();
 };
 
 #endif // NC_GUI.hpp
