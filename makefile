@@ -1,6 +1,6 @@
 CXX=g++
 
-CPPFLAGS=-I/Users/josephsoriano/Downloads/boost_1_69_0/
+CPPFLAGS=-I/home/saurav/Downloads/boost_1_69_0/
 
 CXXFLAGS=-Wall -O0 -g -std=c++11 -lncurses -lpthread
 
