@@ -6,15 +6,15 @@
 
 class interface{
   WINDOW *win;
-  int *userID;
+  int userID;
 public:
   void create_room_box();
   void create_roomMembers_box();
   void create_text_box();
 protected:
   int get_user();
-  vector<chat_room> get_room_list();
-  void change_room(int room_id);
+  //vector<chat_r> get_room_list();
+  //void change_room(int room_id);
 
 };
 
@@ -24,6 +24,8 @@ class login: public interface{
 private:
   bool validate_credentials();
   void create_account();
+  void run_login();
+  void compare_file();
 public:
   login();
   ~login();
@@ -40,14 +42,14 @@ public:
   room();
   void list_users();
   void display_room_list();
-  ~room();
-  delete_room(std::string n);
+  void delete_room(std::string n);
   ~room();
 };
 
 class menu: public interface{
 public:
   menu();
+  int join_room();
   void create_room();
   ~menu();
 

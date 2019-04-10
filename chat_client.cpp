@@ -15,13 +15,12 @@
 #include "asio.hpp"
 #include <ncurses.h>
 #include "chat_message.hpp"
+#include "ncurse_gui.hpp"
 
 using asio::ip::tcp;
 
 typedef std::deque<chat_message> chat_message_queue;
 
-char LOCAL_HOST[10] = "127.0.0.1";
-char*a = LOCAL_HOST;
 class chat_client
 {
 public:
@@ -134,6 +133,9 @@ private:
 
 int main(int argc, char* argv[])
 {
+  //login l;
+  menu m;
+  /*
   try
   {
     asio::io_service io_service;
@@ -163,6 +165,6 @@ int main(int argc, char* argv[])
     {
       std::cerr << "Exception: " << e.what() << "\n";
     }
-
+  */
   return 0;
 }
