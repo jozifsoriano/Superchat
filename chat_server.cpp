@@ -91,11 +91,16 @@ public:
 	/* it has to be here because whoever is in this sepcific */
 	/*      chatroom will receive all messages               */
 
+
   /* auto: For variables, specifies that the type of the variable that is
   being declared will be automatically deduced from its initializer.*/
     for (auto participant: participants_){
 		    participant->deliver(msg);
     }
+
+    for (auto participant: participants_)
+		participant->deliver(msg);
+		
   }
 
 private:

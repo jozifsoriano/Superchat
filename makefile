@@ -1,6 +1,6 @@
 CXX=g++
 
-CPPFLAGS=-I/Users/josephsoriano/Downloads/boost_1_69_0/
+CPPFLAGS=-I/home/saurav/Downloads/boost_1_69_0/
 
 CXXFLAGS=-Wall -O0 -g -std=c++11
 
@@ -11,7 +11,7 @@ COMMON_HEADER = chat_message.hpp
 chat_client.o: ${COMMON_HEADER} chat_client.cpp
 
 chat_client:chat_client.o
-	${CXX} -o chat_client chat_client.o
+	${CXX} -o chat_client chat_client.o -lpthread
 
 chat_server.o: ${COMMON_HEADER} chat_message.hpp chat_server.cpp
 
