@@ -2,26 +2,11 @@
 // chat_server.cpp
 // ~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-
-/*
-
-	THE SERVER IS IN CHARGE OF ACTUALLY SENDING OUT THE
-		MESSAGES TO OTHER CHATROOMS
-
-	CHAT_SERVER WILL HOLD A CONTAINER OF "SERVERS" NUMBERED 9000-9010
-
-	A USER WILL RUN CHAT_CLIENT AND CHOOSE WHETHER OR NOT THEY WANT TO
-		CREATE A CHATROOM
-
-	A CHATROOM, THE CHAT_SERVER WILL PROCESS THE REQUESTS AND
-	AUTOMATICALLY
-
-*/
 
 #include <cstdlib>
 #include <deque>
@@ -30,33 +15,22 @@
 #include <memory>
 #include <set>
 #include <utility>
-#include "asio.hpp"
+#include <boost/asio.hpp>
 #include "chat_message.hpp"
 
 using asio::ip::tcp;
-//typedef std::map<int,string> chat
-int id = 0;
-#define MAX_LENGTH 255
-#define MAX_CHATROOM_ 10
-
-/* LIST OF SERVERS; USER WILL ACTUALLY NAME THE ROOM */
 
 //----------------------------------------------------------------------
 
 typedef std::deque<chat_message> chat_message_queue;
 
 //----------------------------------------------------------------------
-/* 	                        CHAT PARTICIPANT!!!!                    */
+
 class chat_participant
 {
 public:
   virtual ~chat_participant() {}
   virtual void deliver(const chat_message& msg) = 0;
-  char firstname[50];
-  char lastname[50];
-  char username[100];
-  void assign_id () { }
-
 };
 
 typedef std::shared_ptr<chat_participant> chat_participant_ptr;
@@ -68,12 +42,9 @@ class chat_room
 public:
   void join(chat_participant_ptr participant)
   {
-	  //participant->get_id(id)
-	/* this is the container for participant */
     participants_.insert(participant);
-
     for (auto msg: recent_msgs_)
-		participant->deliver(msg);
+      participant->deliver(msg);
   }
 
   void leave(chat_participant_ptr participant)
@@ -87,28 +58,18 @@ public:
     while (recent_msgs_.size() > max_recent_msgs)
       recent_msgs_.pop_front();
 
-	/*   there is a reason why this loop is here!            */
-	/* it has to be here because whoever is in this sepcific */
-	/*      chatroom will receive all messages               */
-
-  /* auto: For variables, specifies that the type of the variable that is
-  being declared will be automatically deduced from its initializer.*/
-    for (auto participant: participants_){
-		    participant->deliver(msg);
-    }
+    for (auto participant: participants_)
+      participant->deliver(msg);
   }
 
 private:
   std::set<chat_participant_ptr> participants_;
   enum { max_recent_msgs = 100 };
-
-  /* messages are objects; this queue holds all messages */
   chat_message_queue recent_msgs_;
 };
 
 //----------------------------------------------------------------------
 
-/* this class covers setting up the sockets for listening for messages */
 class chat_session
   : public chat_participant,
     public std::enable_shared_from_this<chat_session>
@@ -142,7 +103,7 @@ private:
     auto self(shared_from_this());
     asio::async_read(socket_,
         asio::buffer(read_msg_.data(), chat_message::header_length),
-        [this, self](std::error_code ec, std::size_t /*length*/)
+        [this, self](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec && read_msg_.decode_header())
           {
@@ -160,13 +121,11 @@ private:
     auto self(shared_from_this());
     asio::async_read(socket_,
         asio::buffer(read_msg_.body(), read_msg_.body_length()),
-        [this, self](std::error_code ec, std::size_t /*length*/)
+        [this, self](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
             room_.deliver(read_msg_);
-			//std::cout << "here is the instructions to the server" << std::endl;
-			//			<<
             do_read_header();
           }
           else
@@ -182,7 +141,7 @@ private:
     asio::async_write(socket_,
         asio::buffer(write_msgs_.front().data(),
           write_msgs_.front().length()),
-        [this, self](std::error_code ec, std::size_t /*length*/)
+        [this, self](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
@@ -210,9 +169,10 @@ private:
 class chat_server
 {
 public:
-  chat_server(asio::io_context& io_context,
+  chat_server(asio::io_service& io_service,
       const tcp::endpoint& endpoint)
-    : acceptor_(io_context, endpoint)
+    : acceptor_(io_service, endpoint),
+      socket_(io_service)
   {
     do_accept();
   }
@@ -220,12 +180,12 @@ public:
 private:
   void do_accept()
   {
-    acceptor_.async_accept(
-        [this](std::error_code ec, tcp::socket socket)
+    acceptor_.async_accept(socket_,
+        [this](boost::system::error_code ec)
         {
           if (!ec)
           {
-            std::make_shared<chat_session>(std::move(socket), room_)->start();
+            std::make_shared<chat_session>(std::move(socket_), room_)->start();
           }
 
           do_accept();
@@ -233,60 +193,32 @@ private:
   }
 
   tcp::acceptor acceptor_;
+  tcp::socket socket_;
   chat_room room_;
 };
 
 //----------------------------------------------------------------------
 
-char moderator_commands[MAX_LENGTH];
 int main(int argc, char* argv[])
 {
   try
   {
-	  /*
     if (argc < 2)
     {
       std::cerr << "Usage: chat_server <port> [<port> ...]\n";
       return 1;
-    }*/
+    }
 
-    asio::io_context io_context;
+    asio::io_service io_service;
 
-	/* container of servers in case of need of more than 1 server */
     std::list<chat_server> servers;
-
-	/* let's have the server ask a potential moderator what they */
-	/* would like to do in terms of entering created chatrooms */
-	/*
-	std::cout << "Welcome Moderator\nWhat would you like to do: ";
-	std::cin.ignore();
-	std::cin.getline(moderator_commands,255);
-	*/
-	/* THIS NEEDS TO BE FIXED; THERE NEEDS TO BE A FIXED NUMBER OF CHATROOMS */
-	/* ALSO THERE NEEDS TO BE AN AUTOMATIC ADD*/
-
-
-		/* THIS IS CREATING A NEW INSTANCE OF AN ENDPOINT/SOCKET */
-		/* tcp::v4 ==> IPv4 internet protocol version 4   */
-	/*
     for (int i = 1; i < argc; ++i)
     {
-		// this is a socket //
-    	tcp::endpoint endpoint(tcp::v4(), std::atoi(argv[i]));
-    	servers.emplace_back(io_context, endpoint);
-    }*/
+      tcp::endpoint endpoint(tcp::v4(), std::atoi(argv[i]));
+      servers.emplace_back(io_service, endpoint);
+    }
 
-	int port_num = 9000;
-
-	for ( int i = port_num; i < (port_num+10); i++)
-	{
-    tcp::endpoint tempendpoint(tcp::v4(), i);
-    printf("New ports: %d \n",i);
-    servers.emplace_back(io_context, tempendpoint);
-	}
-
-  io_context.run();
-
+    io_service.run();
   }
   catch (std::exception& e)
   {

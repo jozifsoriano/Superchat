@@ -15,17 +15,16 @@
 #include "asio.hpp"
 #include <ncurses.h>
 #include "chat_message.hpp"
+#include "ncurse_gui.hpp"
 
-using boost::asio::ip::tcp;
+using asio::ip::tcp;
 
 typedef std::deque<chat_message> chat_message_queue;
 
-char LOCAL_HOST[10] = "127.0.0.1";
-char*a = LOCAL_HOST;
 class chat_client
 {
 public:
-  chat_client(boost::asio::io_context& io_context,
+  chat_client(asio::io_context& io_context,
       const tcp::resolver::results_type& endpoints)
     : io_context_(io_context),
       socket_(io_context)
@@ -35,7 +34,7 @@ public:
 
   void write(const chat_message& msg)
   {
-    boost::asio::post(io_context_,
+    asio::post(io_context_,
         [this, msg]()
         {
           bool write_in_progress = !write_msgs_.empty();
@@ -49,13 +48,13 @@ public:
 
   void close()
   {
-    boost::asio::post(io_context_, [this]() { socket_.close(); });
+    asio::post(io_context_, [this]() { socket_.close(); });
   }
 
 private:
   void do_connect(const tcp::resolver::results_type& endpoints)
   {
-    boost::asio::async_connect(socket_, endpoints,
+    asio::async_connect(socket_, endpoints,
         [this](std::error_code ec, tcp::endpoint)
         {
           if (!ec)
@@ -67,8 +66,8 @@ private:
 
   void do_read_header()
   {
-    boost::asio::async_read(socket_,
-        boost::asio::buffer(read_msg_.data(), chat_message::header_length),
+    asio::async_read(socket_,
+        asio::buffer(read_msg_.data(), chat_message::header_length),
         [this](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec && read_msg_.decode_header())
@@ -84,8 +83,8 @@ private:
 
   void do_read_body()
   {
-    boost::asio::async_read(socket_,
-        boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
+    asio::async_read(socket_,
+        asio::buffer(read_msg_.body(), read_msg_.body_length()),
         [this](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
@@ -103,8 +102,8 @@ private:
 
   void do_write()
   {
-    boost::asio::async_write(socket_,
-        boost::asio::buffer(write_msgs_.front().data(),
+    asio::async_write(socket_,
+        asio::buffer(write_msgs_.front().data(),
           write_msgs_.front().length()),
         [this](std::error_code ec, std::size_t /*length*/)
         {
@@ -124,14 +123,19 @@ private:
   }
 
 private:
-  boost::asio::io_context& io_context_;
+  asio::io_context& io_context_;
   tcp::socket socket_;
   chat_message read_msg_;
   chat_message_queue write_msgs_;
 };
 
+
+
 int main(int argc, char* argv[])
 {
+  //login l;
+  menu m;
+  /*
   try
   {
 
@@ -282,9 +286,9 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
 
   }
   catch (std::exception& e)
-  {
-    std::cerr << "Exception: " << e.what() << "\n";
-  }
-
+    {
+      std::cerr << "Exception: " << e.what() << "\n";
+    }
+  */
   return 0;
 }
