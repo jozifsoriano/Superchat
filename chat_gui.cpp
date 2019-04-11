@@ -1,45 +1,108 @@
 #include <ncurses.h>
-#include <string>
+#include <string.h>
+#include <cstring>
 #include <vector>
+#include <stdio.h>
+#include <stdlib.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "ncurse_gui.hpp"
-int interface::get_user(){
+#include <fstream>
+
+std::string interface::get_user(){
   return userID;
 }
-login::login(){
+
+void interface::setup(){
   //ncurse start
   initscr();
   cbreak();
   noecho();
 
-  //get screen size
+  //window
+  set_rsize();
+  create_main_box();
+  create_members_box();
+  create_input_box();
+  refresh();
+  wrefresh(main);
+  wrefresh(members);
+  wrefresh(input);
+  //for arrow keys
+  keypad(main,true);
+}
+
+//https://gist.github.com/reagent/9819045
+void interface::draw_borders(WINDOW *screen) {
+  int x, y, i;
+
+  getmaxyx(screen, y, x);
+
+  // 4 corners
+  mvwprintw(screen, 0, 0, "+");
+  mvwprintw(screen, y - 1, 0, "+");
+  mvwprintw(screen, 0, x - 1, "+");
+  mvwprintw(screen, y - 1, x - 1, "+");
+
+  // sides
+  for (i = 1; i < (y - 1); i++) {
+    mvwprintw(screen, i, 0, "|");
+    mvwprintw(screen, i, x - 1, "|");
+  }
+
+  // top and bottom
+  for (i = 1; i < (x - 1); i++) {
+    mvwprintw(screen, 0, i, "-");
+    mvwprintw(screen, y - 1, i, "-");
+  }
+}
+
+void interface::create_main_box(){
   int ymax, xmax;
   getmaxyx(stdscr,ymax,xmax);
+  main = newwin(ymax-isize,xmax-rsize,0,0);
+  draw_borders(main);
+}
 
-  //window
-  WINDOW * l = newwin(6,xmax-12,ymax-8,5);
-  refresh();
-  wrefresh(l);
+void interface::create_members_box(){
+  int ymax, xmax;
+  getmaxyx(stdscr,ymax,xmax);
+  members = newwin(ymax-isize,rsize,0,xmax-rsize);
+  draw_borders(members);
+}
 
-  //for arrow keys
-  keypad(l,true);
+void interface::create_input_box(){
+  int ymax, xmax;
+  getmaxyx(stdscr,ymax,xmax);
+  input = newwin(isize, xmax, ymax - isize, 0);
+  draw_borders(input);
+}
+
+void interface::set_rsize(){
+  int ymax, xmax;
+  getmaxyx(stdscr,ymax,xmax);
+  rsize = xmax/4;
+}
+
+login::login(){
+  bool flag = true;
+  setup();
 
   //options
   std::string options[2] = {"Login", "Create account"};
   int choice;
   int highlight = 0;
 
-  while(1){
+  while(flag){
     //for loop write options with background color highlight
     for(int i=0; i<2; i++){
       if(i==highlight){
-        wattron(l, A_REVERSE);
+        wattron(main, A_REVERSE);
       }
-      mvwprintw(l,i+1,1, options[i].c_str());
-      wattroff(l, A_REVERSE);
+      mvwprintw(main,(i*3)+15,10, options[i].c_str());
+      wattroff(main, A_REVERSE);
     }
-    choice = wgetch(l);
+    choice = wgetch(main);
     switch(choice){
       case KEY_UP:
         highlight--;
@@ -55,40 +118,74 @@ login::login(){
         break;
       case 10:
         if(highlight==0){
+          clear();
           run_login();
+          //flag =false;
         }
         if(highlight==1){
-          create_account();
+          //create_account();
+          //flag = false;
         }
-    }
-    if(choice==27){
-      break;
-    }
+        break;
+      case 27:
+          flag = false;
+          break;
+      default:
+        break;
+
+      }
   }
+  endwin();
 }
+
 void login::run_login(){
+  setup();
+  echo();
+  //user input
+  wrefresh(main);
+  mvwprintw(main,15,1,"USER ID:   ");
+  mvwprintw(input,1,1,"User ID:  ");
+  wmove(input,1,14);
+  getstr(input_ID);
 
+  //mvwprintw(main,15,1,"USER ID:   %s",input_ID);
+  //mvwprintw(main,45,1,"PASSWORD:  ");
+  //mvwprintw(input,1,1,"Password:  ");
+  wgetstr(input,input_password);
+  wrefresh(main);
+  wrefresh(input);
+  refresh();
+  getch();
+
+  //validate_credentials(input_ID,input_password);
 }
 
-bool login::validate_credentials(){
-  if(1){
-    return true;
-  }else{
-    return false;
+bool login::validate_credentials(char *id ,char *pw){
+  std::string checkid, checkpw, fstring;
+  std::ifstream flogin("~Superchat");
+  while(std::getline(flogin,fstring)){
+    std::string delimiter = "/";
+    size_t pos = 0;
+    pos = fstring.find(delimiter);
+    checkid = fstring.substr(0, pos);
+    checkpw = fstring.substr(pos,fstring.length());
+    if((id == checkid)&&(pw == checkpw)){
+      return true;
+    }
   }
+  return false;
 }
+
 void login::create_account(){
 
 }
-void login::compare_file(){
 
-}
 
 login::~login(){
   endwin();
 }
 
-
+/*
 menu::menu(){
   //ncurse start
   initscr();
@@ -107,6 +204,7 @@ menu::menu(){
   //for arrow keys
   keypad(l,true);
 
+  getch();
   //options
   std::string options[3] = {"Join Room","Create Room","Exit"};
   int choice;
@@ -135,7 +233,7 @@ menu::menu(){
           highlight=2;
         }
         break;
-      case 10:
+      case 10: //KEY_ENTER
         if(highlight==0){
           join_room();
         }
@@ -150,7 +248,8 @@ menu::menu(){
       break;
     }
   }
-}
+}*/
+
 int menu::join_room(){
   return 9000;
 }
@@ -162,226 +261,3 @@ void menu::create_room(){
 menu::~menu(){
   endwin();
 }
-
-/*
-class interface{
-  WINDOW *win;
-  int userID;
-public:
-  void create_room_box();
-  void create_roomMembers_box();
-  void create_input_box();
-
-  //std::vector<std::string> get_room_list(){}
-  //void change_room(int room_id){}
-};*/
-
-
-/*
-class login: public interface{
-  int input_ID;
-  std::string input_password;
-private:
-  void run_login(){
-
-  }
-  bool validate_credentials(){
-    if(1){
-      return true;
-    }else{
-      return false;
-    }
-  }
-  void create_account(){
-
-  }
-  void compare_file(){
-
-  }
-public:
-  login(){
-    //ncurse start
-    initscr();
-    cbreak();
-    noecho();
-
-    //get screen size
-    int ymax, xmax;
-    getmaxyx(stdscr,ymax,xmax);
-
-    //window
-    WINDOW * l = newwin(6,xmax-12,ymax-8,5);
-    refresh();
-    wrefresh(l);
-
-    //for arrow keys
-    keypad(l,true);
-
-    //options
-    std::string options[2] = {"Login", "Create account"};
-    int choice;
-    int highlight = 0;
-
-    while(1){
-      //for loop write options with background color highlight
-      for(int i=0; i<2; i++){
-        if(i==highlight){
-          wattron(l, A_REVERSE);
-        }
-        mvwprintw(l,i+1,1, options[i].c_str());
-        wattroff(l, A_REVERSE);
-      }
-      choice = wgetch(l);
-      switch(choice){
-        case KEY_UP:
-          highlight--;
-          if(highlight==-1){
-            highlight=0;
-          }
-          break;
-        case KEY_DOWN:
-          highlight++;
-          if(highlight==2){
-            highlight=1;
-          }
-          break;
-        case 10:
-          if(highlight==0){
-            run_login();
-          }
-          if(highlight==1){
-            create_account();
-          }
-      }
-      if(choice==27){
-        break;
-      }
-    }
-
-  }
-  ~login(){
-    endwin();
-  }
-};
-
-class room: public interface{
-  int port_num;
-public:
-  std::string name;
-private:
-  void add_room();
-  int get_room();
-public:
-  room();
-  void list_users();
-  void display_room_list();
-  void delete_room(std::string n);
-  ~room();
-};
-
-class menu: public interface{
-public:
-  menu(){
-    //ncurse start
-    initscr();
-    cbreak();
-    noecho();
-
-    //get screen size
-    int ymax, xmax;
-    getmaxyx(stdscr,ymax,xmax);
-
-    //window
-    WINDOW * l = newwin(6,xmax-12,ymax-8,5);
-    refresh();
-    wrefresh(l);
-
-    //for arrow keys
-    keypad(l,true);
-
-    //options
-    std::string options[3] = {"Join Room","Create Room","Exit"};
-    int choice;
-    int highlight = 0;
-
-    while(1){
-      //for loop write options with background color highlight
-      for(int i=0; i<3; i++){
-        if(i==highlight){
-          wattron(l, A_REVERSE);
-        }
-        mvwprintw(l,i+1,1, options[i].c_str());
-        wattroff(l, A_REVERSE);
-      }
-      choice = wgetch(l);
-      switch(choice){
-        case KEY_UP:
-          highlight--;
-          if(highlight==-1){
-            highlight=0;
-          }
-          break;
-        case KEY_DOWN:
-          highlight++;
-          if(highlight==3){
-            highlight=2;
-          }
-          break;
-        case 10:
-          if(highlight==0){
-            join_room();
-          }
-          if(highlight==1){
-            create_room();
-          }
-          if(highlight==2){
-            endwin();
-          }
-      }
-      if(choice==27){
-        break;
-      }
-    }
-  }
-
-  int join_room(){
-    return 9000;
-  }
-
-  void create_room(){
-
-  }
-
-  ~menu(){
-    endwin();
-  }
-
-};*/
-/*
-class manager: public interface{
-
-
-};
-
-class command{
-  std::string input;
-public:
-  command(std::string c);
-private:
-  void help();
-  void mute();
-  void create_room();
-  void display_room_list();
-  void exit_client();
-  void broadcast();
-  void transfer();
-  ~command();
-};
-*/
-
-/*
-int main(){
-  login l;
-  menu m;
-  return 0;
-}*/

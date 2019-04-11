@@ -5,27 +5,33 @@
 #include <string>
 
 class interface{
-  WINDOW *win;
-  int userID;
-public:
-  void create_room_box();
-  void create_roomMembers_box();
-  void create_text_box();
+  std::string userID;
 protected:
-  int get_user();
+  WINDOW *main;
+  WINDOW *members;
+  WINDOW *input;
+
+  int isize = 3;
+  int rsize;
+  std::string get_user();
+  void draw_borders(WINDOW *w);
+  void create_main_box();
+  void create_members_box();
+  void create_input_box();
+  void set_rsize();
+  void setup();
   //vector<chat_r> get_room_list();
   //void change_room(int room_id);
 
 };
 
 class login: public interface{
-  int input_ID;
-  std::string input_password;
+  char *input_ID;
+  char *input_password;
 private:
-  bool validate_credentials();
+  bool validate_credentials(char *id,char *pw);
   void create_account();
   void run_login();
-  void compare_file();
 public:
   login();
   ~login();

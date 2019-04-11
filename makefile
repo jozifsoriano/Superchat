@@ -1,8 +1,8 @@
 CXX=g++
 
-CPPFLAGS=-I/home/saurav/Downloads/boost_1_69_0/
+CPPFLAGS=-I/Users/josephsoriano/Downloads/boost_1_69_0/
 
-CXXFLAGS=-Wall -O0 -g -std=c++11 -lncurses -lpthread
+CXXFLAGS=-Wall -O0 -g -std=c++11
 
 all: chat_client chat_server
 
@@ -13,7 +13,7 @@ chat_client.o: $(COMMON_HEADER) chat_client.cpp
 chat_gui.o:  $(COMMON_HEADER) chat_gui.cpp
 
 chat_client:chat_client.o chat_gui.o
-	$(CXX) -o chat_client chat_client.o chat_gui.cpp -lncurses -lpthread
+	$(CXX) -o chat_client chat_client.o chat_gui.o -lncurses -lpthread
 
 chat_server.o: ${COMMON_HEADER} chat_message.hpp chat_server.cpp
 
@@ -41,5 +41,5 @@ directories:
 
 
 clean:
-	-rm -f chat_client chat_server chat_client.o chat_server.o a.out
+	-rm -f chat_client chat_server chat_client.o chat_server.o a.out chat_gui.o
 	-rm -rf bin src res include obj
