@@ -6,12 +6,14 @@ CXXFLAGS=-Wall -O0 -g -std=c++11
 
 all: chat_client chat_server
 
-COMMON_HEADER = chat_message.hpp
+COMMON_HEADER = chat_message.hpp menu_chat.hpp
 
 chat_client.o: ${COMMON_HEADER} chat_client.cpp
 
-chat_client:chat_client.o
-	${CXX} -o chat_client chat_client.o -lpthread
+menu_chat.o: ${COMMON_HEADER} menu_chat.cpp
+
+chat_client:chat_client.o menu_chat.o
+	${CXX} -o chat_client chat_client.o menu_chat.cpp -lpthread
 
 chat_server.o: ${COMMON_HEADER} chat_message.hpp chat_server.cpp
 
