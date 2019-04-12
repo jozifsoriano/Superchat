@@ -14,27 +14,38 @@ protected:
   int isize = 3;
   int rsize;
   std::string get_user();
+  void setup();
   void draw_borders(WINDOW *w);
   void create_main_box();
   void create_members_box();
   void create_input_box();
   void set_rsize();
-  void setup();
+  std::string get_input(WINDOW *w, char *name);
+  bool check_command();
   //vector<chat_r> get_room_list();
   //void change_room(int room_id);
 
 };
 
 class login: public interface{
-  char *input_ID;
-  char *input_password;
+  std::string input_ID;
+  std::string input_password;
 private:
-  bool validate_credentials(char *id,char *pw);
+  bool validate_credentials();
   void create_account();
-  void run_login();
+  bool run_login();
 public:
   login();
   ~login();
+};
+
+class menu: public interface{
+public:
+  menu();
+  int join_room();
+  void create_room();
+  ~menu();
+
 };
 
 class room: public interface{
@@ -50,15 +61,6 @@ public:
   void display_room_list();
   void delete_room(std::string n);
   ~room();
-};
-
-class menu: public interface{
-public:
-  menu();
-  int join_room();
-  void create_room();
-  ~menu();
-
 };
 
 class manager: public interface{
@@ -78,6 +80,7 @@ private:
   void exit_client();
   void broadcast();
   void transfer();
+  void error();
   ~command();
 };
 

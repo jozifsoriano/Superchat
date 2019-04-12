@@ -5,16 +5,21 @@
 # TODO:
 - [ ] code
   * [x] start writing the classes from UML Diagram.
-  * [ ] makefile
-  * [ ] echo: do not send back messages to the client sending the messages
+  * [ ] makefile and clean directories
+  * [x] echo: do not send back messages to the client sending the messages NOTE:(will fix with ncurses)
+  * [x] comment code for Friday
+  * [ ] finish interface functions
+  * [ ] implement saurav code
   * [ ] ncurses windows with the asio examples
   * [ ] implenting more chat_sessions for chat rooms
   * [x] read commands
+
 - [ ] testing requirements and report
+  * [ ] josh and ryan <------
 - [ ] presentation
 
 
-#GIT INSTRUCTIONS:
+# GIT INSTRUCTIONS:
 1. Open Git Bash or whatever terminal your going to use.
 	-if your not using Git Bash make sure you have git installed
 
