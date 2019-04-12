@@ -13,20 +13,24 @@
 #include <deque>
 #include <iostream>
 #include <thread>
+#include <fstream>
 #include "asio.hpp"
 #include <ncurses.h>
 #include "chat_message.hpp"
 #include "menu_chat.hpp"
 
-using boost::asio::ip::tcp;
-
-typedef std::deque<chat_message> chat_message_queue;
-
 char LOCAL_HOST[10] = "127.0.0.1";
 char*a = LOCAL_HOST;
 int createroom=0;
 int chatroomcounter=0;
+std::string user_created_room;
+std::string user_chatroom ;
 
+
+
+using boost::asio::ip::tcp;
+
+typedef std::deque<chat_message> chat_message_queue;
 
 class chat_client
 {
@@ -136,6 +140,7 @@ private:
   chat_message_queue write_msgs_;
 };
 
+
 int main(int argc, char* argv[])
 {
   try
@@ -190,9 +195,8 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
 	*/
 
 	/* we will make this starting port number */
-	std::string user_chatroom = "9000";
-  std::string user_created_room = "9000";
-	std::string LOCAL_HOST = "127.0.0.1";
+  std::string LOCAL_HOST = "127.0.0.1";
+
 
 
 	tcp::resolver resolver(io_context);
@@ -234,54 +238,51 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
 			=>
 	*/
     char compare_string[100];
-  std::cout << "WELCOME TO SUPERCHAT!\n";
+    std::cout << "WELCOME TO SUPERCHAT!\n";
     //char input[50];
-    int user_choice; // will be a number between 1-3
+    int user_choice= 0; // will be a number between 1-3
 
     int quit_loop = 0;
     std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
-    while ( !quit_loop )
+    while ( quit_loop != 1)
     {
-      Mymenu.print_menu();
+
       while ( user_choice != 4)
       {
+        Mymenu.print_menu();
         std::cout << "\n\n<sUpErChAt> ";
         std::cin >> user_choice;
         if (user_choice==1)//Enter Lobby
         {
           user_created_room = "9000";
           std::cout<<"****WELCOME TO LOBBY****";
+          user_chatroom= user_created_room;
         }
         if(user_choice==2)//enter chatroom
         {
           //show available chatrooms
-          int room_available = Mymenu.enter_rooms(user_created_room);//if enter chatroom send 1;if create chatroom send 0;
-          //if 1 check if matches avaiable chatrooms and print available chatrooms;
-          while(room_available==0)
+          user_chatroom = Mymenu.enter_rooms(user_created_room);//
+          if (user_chatroom == "9000")
           {
-          std::cout<<"No such chatroom exist";
-          room_available = Mymenu.enter_rooms(user_created_room);
+            std::cout<<"****WELCOME TO LOBBY****";
           }
-          if(room_available>0)
+          else
           {
-          std::cout<<"Room"<<user_created_room;
-          }
-          }
-        if (user_choice==3)//create chatroom
-        {
-          int room_available =Mymenu.create_rooms(user_created_room );
-          if (room_available==1)//successful
-          {
-            std::cout<<"Chatroom"<<user_created_room<<"created\n";
-          }
-        while(room_available!=1)
-        {   std::cout<<"Chatroom Already exist:\n";
-            std::cout<<"Enter a chatroom number again:\n";
-            std::cin>>user_created_room;
-            room_available = Mymenu.create_rooms(user_created_room );
+          std::cout<< "Room "<<user_chatroom;
           }
         }
-          user_chatroom=user_created_room;
+        if (user_choice==3)//create chatroom
+        {
+          user_chatroom = Mymenu.create_rooms(user_created_room );
+          if (user_chatroom == "9000")
+          {
+            std::cout<<"****WELCOME TO LOBBY****";
+          }
+          else
+          {
+          std::cout<< "Room "<<user_chatroom;
+          }
+        }
           auto endpoints = resolver.resolve(LOCAL_HOST, user_chatroom);
           chat_client c(io_context, endpoints);
           std::thread t([&io_context](){ io_context.run(); });
@@ -296,8 +297,9 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
               std::strcpy(compare_string, line);
     	      	msg.encode_header();
     			//msg.message_to_server();
-              if ( strcmp(compare_string,"/exit")==0)
+              if ( strcmp(compare_string,"exit")==0)
               {
+                quit_loop=1;
                 break;
               }
     			c.write(msg);

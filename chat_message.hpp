@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 
+
 class chat_message
 {
 public:
