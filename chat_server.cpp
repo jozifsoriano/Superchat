@@ -278,7 +278,7 @@ int main(int argc, char* argv[])
 
 	int port_num = 9000;
 
-	for ( int i = port_num; i < (port_num+10); i++)
+	for ( int i = port_num; i < (port_num+12); i++)
 	{
     tcp::endpoint tempendpoint(tcp::v4(), i);
     printf("New ports: %d \n",i);

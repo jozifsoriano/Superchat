@@ -4,6 +4,8 @@
 
 ChatroomArray[chatroomcounter]="9000";
 
+//transferred
+/*
 void Mymenu::print_menu()
 {
   std::string menuArray[10];
@@ -16,7 +18,7 @@ void Mymenu::print_menu()
     std::cout<<menuArray[i]<<"\n";
   }
 
-}
+}*/
 
 int Mymenu::create_rooms(std::string user_created_room)
 {

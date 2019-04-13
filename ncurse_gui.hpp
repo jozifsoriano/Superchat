@@ -13,7 +13,6 @@ protected:
 
   int isize = 3;
   int rsize;
-  std::string get_user();
   void setup();
   void draw_borders(WINDOW *w);
   void create_main_box();
@@ -42,29 +41,30 @@ public:
 class menu: public interface{
 public:
   menu();
-  int join_room();
+  void join_room();
+  void join_lobby();
   void create_room();
   ~menu();
-
-};
-
-class room: public interface{
-  int port_num;
-public:
-  std::string name;
-private:
-  void add_room();
-  int get_room();
-public:
-  room();
+protected:
   void list_users();
   void display_room_list();
   void delete_room(std::string n);
+  std::string port_num;
+};
+
+class room: public menu{
+public:
+  std::string name;
+public:
+  room();
+  void print_recent_msgs();
   ~room();
 };
 
 class manager: public interface{
-
+public:
+  manager();
+  ~manager();
 
 };
 

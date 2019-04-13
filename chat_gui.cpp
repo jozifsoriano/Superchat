@@ -31,8 +31,6 @@ void interface::setup(){
   wrefresh(members);
   wrefresh(input);
 
-  //enable arrow keys
-  keypad(main,TRUE);
 }
 
 //https://gist.github.com/reagent/9819045
@@ -133,6 +131,8 @@ login::login(){
   //flag for movement keys
   bool flag = TRUE;
   setup();
+  //enable arrow keys
+  keypad(main,TRUE);
 
   //options
   std::string options[2] = {"Login", "Create account"};
@@ -174,19 +174,18 @@ login::login(){
         if(highlight==1){
           clear();
           create_account();
-          //flag = false;
+          //flag = FALSE;
           setup();
         }
         break;
       case 27:
-          flag = false;
+          flag = FALSE;
           break;
       default:
         break;
 
       }
   }
-  endwin();
 }
 
 bool login::run_login(){
@@ -267,44 +266,35 @@ void login::create_account(){
 
 //destructor
 login::~login(){
+  clear();
+  refresh();
   endwin();
 }
 
-/*
+
 menu::menu(){
-  //ncurse start
-  initscr();
-  cbreak();
-  noecho();
+  //flag for movement keys
+  bool flag = TRUE;
+  setup();
+  //enable arrow keys
+  keypad(main,TRUE);
 
-  //get screen size
-  int ymax, xmax;
-  getmaxyx(stdscr,ymax,xmax);
-
-  //window
-  WINDOW * l = newwin(6,xmax-12,ymax-8,5);
-  refresh();
-  wrefresh(l);
-
-  //for arrow keys
-  keypad(l,TRUE);
-
-  getch();
   //options
-  std::string options[3] = {"Join Room","Create Room","Exit"};
+  std::string options[4] = {"Join Lobby","Join Room","Create Room","Exit"};
   int choice;
   int highlight = 0;
 
-  while(1){
+  while(flag){
     //for loop write options with background color highlight
-    for(int i=0; i<3; i++){
+    for(int i=0; i<4; i++){
       if(i==highlight){
-        wattron(l, A_REVERSE);
+        wattron(main, A_REVERSE);
       }
-      mvwprintw(l,i+1,1, options[i].c_str());
-      wattroff(l, A_REVERSE);
+      mvwprintw(main,(i*3)+15,10, options[i].c_str());
+      wattroff(main, A_REVERSE);
     }
-    choice = wgetch(l);
+
+    choice = wgetch(main);
     switch(choice){
       case KEY_UP:
         highlight--;
@@ -314,34 +304,47 @@ menu::menu(){
         break;
       case KEY_DOWN:
         highlight++;
-        if(highlight==3){
-          highlight=2;
+        if(highlight==4){
+          highlight=3;
         }
         break;
       case 10: //KEY_ENTER
         if(highlight==0){
+          clear();
+          join_lobby();
+          flag = FALSE;
+        }else if(highlight==1){
+          clear();
           join_room();
-        }
-        if(highlight==1){
+          flag = FALSE;
+        }else if(highlight==2){
+          clear();
           create_room();
-        }
-        if(highlight==2){
+          flag = FALSE;
+        }else if(highlight==3){
           endwin();
+          flag = FALSE;
         }
     }
     if(choice==27){
       break;
     }
   }
-}*/
+  endwin();
+}
 
-int menu::join_room(){
-  return 9000;
+void menu::join_lobby(){
+
+}
+
+void menu::join_room(){
+
 }
 
 void menu::create_room(){
 
 }
+
 
 menu::~menu(){
   endwin();

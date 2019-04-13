@@ -22,10 +22,13 @@ using boost::asio::ip::tcp;
 
 typedef std::deque<chat_message> chat_message_queue;
 
+//saurav
+/*
 char LOCAL_HOST[10] = "127.0.0.1";
 char*a = LOCAL_HOST;
 int createroom=0;
 int chatroomcounter=0;
+*/
 
 
 class chat_client
@@ -140,9 +143,43 @@ private:
 
 int main(int argc, char* argv[])
 {
+  //main variables
   int room_num;
+  bool running = TRUE;
   login l;
-  menu m;
+  while(running){
+    menu m;
+  }
+
+  /*
+  try{
+    asio::io_service io_service;
+
+    tcp::resolver resolver(io_service);
+    auto endpoint_iterator = resolver.resolve({ argv[1], argv[2] });
+    chat_client c(io_service, endpoint_iterator);
+
+    std::thread t([&io_service](){ io_service.run(); });
+
+    char line[chat_message::max_body_length + 1];
+    while (std::cin.getline(line, chat_message::max_body_length + 1))
+    {
+      chat_message msg;
+      msg.body_length(std::strlen(line));
+      std::memcpy(msg.body(), line, msg.body_length());
+      msg.encode_header();
+      c.write(msg);
+    }
+
+    c.close();
+    t.join();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Exception: " << e.what() << "\n";
+  }*/
+
+
 
   /*
   try

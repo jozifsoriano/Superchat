@@ -8,8 +8,11 @@
   * [ ] makefile and clean directories
   * [x] echo: do not send back messages to the client sending the messages NOTE:(will fix with ncurses)
   * [x] comment code for Friday
-  * [ ] finish interface functions
+  * [x] finish interface functions
+  * [ ] all of client in header? that way we can use the functions inside chat_gui
   * [ ] implement saurav code
+    * [ ] turn to ncurses
+  * [ ] 9000 is default, 9001 lobby, 9002-9011 is new rooms.
   * [ ] ncurses windows with the asio examples
   * [ ] implenting more chat_sessions for chat rooms
   * [x] read commands
