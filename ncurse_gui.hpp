@@ -22,8 +22,8 @@ protected:
   void set_rsize();
   std::string get_input(WINDOW *w, char *name);
   bool check_command();
-  //vector<chat_r> get_room_list();
-  //void change_room(int room_id);
+public:
+  std::string get_user();
 
 };
 

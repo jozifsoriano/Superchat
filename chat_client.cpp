@@ -135,8 +135,8 @@ int main(int argc, char* argv[])
 {
   int room_num;
   login l;
-  //menu m;
-
+  menu m;
+  
   /*
   try
   {
