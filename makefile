@@ -6,7 +6,7 @@ CXXFLAGS=-Wall -O0 -g -std=c++11
 
 all: chat_client chat_server
 
-COMMON_HEADER = chat_message.hpp ncurse_gui.hpp
+COMMON_HEADER = chat_message.hpp ncurse_gui.hpp 
 
 chat_client.o: $(COMMON_HEADER) chat_client.cpp
 

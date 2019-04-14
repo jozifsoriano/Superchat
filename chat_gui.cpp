@@ -135,7 +135,7 @@ login::login(){
   keypad(main,TRUE);
 
   //options
-  std::string options[2] = {"Login", "Create account"};
+  std::string options[3] = {"Login", "Create account","Exit"};
   int choice;
   int highlight = 0;
 
@@ -143,7 +143,7 @@ login::login(){
     //empty input_ID and input_password
     //for loop write options with background color highlight
     input_ID = input_password = "";
-    for(int i=0; i<2; i++){
+    for(int i=0; i<3; i++){
       if(i==highlight){
         wattron(main, A_REVERSE);
       }
@@ -161,8 +161,8 @@ login::login(){
         break;
       case KEY_DOWN:
         highlight++;
-        if(highlight==2){
-          highlight=1;
+        if(highlight==3){
+          highlight=2;
         }
         break;
       case 10:
@@ -170,16 +170,21 @@ login::login(){
           clear();
           flag = run_login();
           setup();
+          break;
         }
         if(highlight==1){
           clear();
           create_account();
-          //flag = FALSE;
           setup();
+          break;
         }
-        break;
+        if (highlight==2){
+          flag = FALSE;
+          quit_flag = FALSE;
+        }
       case 27:
           flag = FALSE;
+          quit_flag = FALSE;
           break;
       default:
         break;
@@ -212,7 +217,7 @@ bool login::run_login(){
   wrefresh(input);
   clear();
   if(validate_credentials()==FALSE){
-    return TRUE;
+    return true;
   }else{
     return FALSE;
   }
@@ -324,9 +329,11 @@ menu::menu(){
         }else if(highlight==3){
           endwin();
           flag = FALSE;
+          quit_flag = FALSE;
         }
     }
     if(choice==27){
+      quit_flag=FALSE;
       break;
     }
   }
@@ -334,11 +341,13 @@ menu::menu(){
 }
 
 void menu::join_lobby(){
-
+  port_num = "9001";
 }
 
 void menu::join_room(){
-
+  setup();
+  char jr[] = "Enter room num: ";
+  port_num = get_input(input,jr);
 }
 
 void menu::create_room(){

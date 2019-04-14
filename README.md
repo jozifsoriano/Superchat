@@ -16,6 +16,7 @@
   * [ ] ncurses windows with the asio examples
   * [ ] implenting more chat_sessions for chat rooms
   * [x] read commands
+  * [ ] redo UML diagram
 
 - [ ] testing requirements and report
   * [ ] josh and ryan <------

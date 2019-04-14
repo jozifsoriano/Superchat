@@ -8,7 +8,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <string.h>
-#include<cstring>
+#include <cstring>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -141,14 +141,21 @@ private:
 
 
 
-int main(int argc, char* argv[])
-{
+//-------------------------------------------------
+int main(int argc, char* argv[]){
   //main variables
-  int room_num;
   bool running = TRUE;
+  std::string LOCAL_HOST = "127.0.0.1";
+
+  //run login screen
+  //continues when logged in or quits when
   login l;
-  while(running){
+  if (l.quit_flag == FALSE){
+    return 0;
+  }
+  while(running ){
     menu m;
+    running = m.quit_flag;
   }
 
   /*
@@ -156,7 +163,7 @@ int main(int argc, char* argv[])
     asio::io_service io_service;
 
     tcp::resolver resolver(io_service);
-    auto endpoint_iterator = resolver.resolve({ argv[1], argv[2] });
+    auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.port_num});
     chat_client c(io_service, endpoint_iterator);
 
     std::thread t([&io_service](){ io_service.run(); });

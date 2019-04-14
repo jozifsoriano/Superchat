@@ -23,6 +23,7 @@ protected:
   bool check_command();
 public:
   std::string get_user();
+  bool quit_flag = TRUE; // when false, quit 
 
 };
 
