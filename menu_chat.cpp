@@ -10,9 +10,9 @@ void Mymenu::print_menu()
   int j =0;
   std::string line;
   std::string menuArray[10];
-  menuArray[0]= "1.Enter Lobby";
-  menuArray[1]= "2.Enter Chatroom";
-  menuArray[2]= "3.Create Chatroom";
+  menuArray[0]= "1.Enter CHATROOM";
+  menuArray[1]= "2.Create CHATROOM";
+  menuArray[2]= "3.Delete CHATROOM";
   menuArray[3]= "4.Quit";
   for(int i=0; i< 4; i++)
   {
@@ -120,4 +120,56 @@ std::string Mymenu::enter_rooms(std::string user_created_room)
   }
   return user_created_room;
 
+}
+
+std::string Mymenu::delete_rooms(std::string user_created_room)
+{
+  int x =0;
+  int j = 0;
+  std::string line;
+//  std::string oline;
+  std::cout<<"Available chatrooms\n";
+  std::ifstream myfile("chatroom.txt");
+  if (myfile.is_open())
+   {
+     while ( getline (myfile,line) )
+     {
+       std::cout << line << '\n';
+       for(j =0; j <chatroomcounter+1;j++)
+       {
+         ChatroomArray[j]=line;
+       }
+     }
+     myfile.close();
+   }
+std::cout<<"Enter a chatroom number to delete";
+std::cin>>user_created_room;
+std::ofstream omyfile("chatroom.txt");
+if (omyfile.is_open())
+{
+for( j =0; j <chatroomcounter+1;j++)
+{
+  if(user_created_room==ChatroomArray[j])
+  {
+    x++;
+    //ChatroomArray[j]=ChatroomArray[j+1];
+    //ChatroomArray[j+1]="";
+  }
+  else
+  {
+     omyfile << ChatroomArray[j]<<"\n";
+  }
+}
+omyfile.close();
+}
+if (x>0)
+{
+  std::cout<<"Delete successful\n";
+}
+else
+{
+  std::cout<<"No such chatroom exist\n";
+  delete_rooms(user_created_room);
+}
+return user_created_room;
 }

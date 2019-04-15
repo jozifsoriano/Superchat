@@ -244,12 +244,13 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
 
     int quit_loop = 0;
     std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
+    std::cout<<"1.Enter Lobby\n"<<"2.CHATROOMs\n"<<"3.Quit";
     while ( quit_loop != 1)
     {
 
-      while ( user_choice != 4)
+      while ( user_choice != 3)
       {
-        Mymenu.print_menu();
+
         std::cout << "\n\n<sUpErChAt> ";
         std::cin >> user_choice;
         if (user_choice==1)//Enter Lobby
@@ -260,7 +261,12 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
         }
         if(user_choice==2)//enter chatroom
         {
+            Mymenu.print_menu();
+            std::cout << "\n\n<sUpErChAt> ";
+            std::cin >> user_choice;
           //show available chatrooms
+          if (user_choice==1)
+          {
           user_chatroom = Mymenu.enter_rooms(user_created_room);//
           if (user_chatroom == "9000")
           {
@@ -271,7 +277,7 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
           std::cout<< "Room "<<user_chatroom;
           }
         }
-        if (user_choice==3)//create chatroom
+        if (user_choice==2)//create chatroom
         {
           user_chatroom = Mymenu.create_rooms(user_created_room );
           if (user_chatroom == "9000")
@@ -283,6 +289,13 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
           std::cout<< "Room "<<user_chatroom;
           }
         }
+        if(user_choice==3)
+        {
+            user_chatroom = Mymenu.delete_rooms(user_created_room );
+            user_chatroom="9000";
+            std::cout<<"****WELCOME TO LOBBY****";
+        }
+      }
           auto endpoints = resolver.resolve(LOCAL_HOST, user_chatroom);
           chat_client c(io_context, endpoints);
           std::thread t([&io_context](){ io_context.run(); });
@@ -314,7 +327,7 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
         continue;
       }
 
-      quit_loop = 0;
+      quit_loop = 1;
 
     }
 
