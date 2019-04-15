@@ -70,7 +70,7 @@ std::string Mymenu::create_rooms(std::string user_created_room)
   }
   else
   {
-  while(x!=0)
+  while(x!=1)
     {   std::cout<<"Chatroom Already exist:\n";
       std::cout<<"Enter a chatroom number again:\n";
       std::cin>>user_created_room;
@@ -100,11 +100,9 @@ std::string Mymenu::enter_rooms(std::string user_created_room)
      }
      myfile.close();
    }
-
-   else std::cout << "Unable to open chatrooms";
   std::cout<<"Enter chatroom number from available room to enter:";
   std::cin>> user_created_room;
-  for( j =0; j <chatroomcounter+1;j++)
+  for( j=0; j < chatroomcounter+1;j++)
   {
     if (user_created_room==ChatroomArray[j])
     {
@@ -127,44 +125,38 @@ std::string Mymenu::delete_rooms(std::string user_created_room)
   int x =0;
   int j = 0;
   std::string line;
+  std::string newchatroom[20];
 //  std::string oline;
-  std::cout<<"Available chatrooms\n";
-  std::ifstream myfile("chatroom.txt");
-  if (myfile.is_open())
-   {
-     while ( getline (myfile,line) )
-     {
-       std::cout << line << '\n';
-       for(j =0; j <chatroomcounter+1;j++)
-       {
-         ChatroomArray[j]=line;
-       }
-     }
-     myfile.close();
-   }
+std::cout<<"Available Chatrooms:\n";
+for( j =0; j <chatroomcounter+1;j++)
+{
+  std::cout<<ChatroomArray[j]<< "\n";
+}
 std::cout<<"Enter a chatroom number to delete";
 std::cin>>user_created_room;
-std::ofstream omyfile("chatroom.txt");
-if (omyfile.is_open())
+std::ofstream myfile("chatroom.txt");
+if (myfile.is_open())
 {
-for( j =0; j <chatroomcounter+1;j++)
+for( j=0; j <chatroomcounter+1;j++)
 {
   if(user_created_room==ChatroomArray[j])
   {
     x++;
-    //ChatroomArray[j]=ChatroomArray[j+1];
-    //ChatroomArray[j+1]="";
+    ChatroomArray[j]=ChatroomArray[j+1];
+    ChatroomArray[j+1]="";
   }
   else
   {
-     omyfile << ChatroomArray[j]<<"\n";
+     myfile << ChatroomArray[j] <<"\n";
+     newchatroom[j]=ChatroomArray[j];
   }
 }
-omyfile.close();
+myfile.close();
 }
 if (x>0)
 {
   std::cout<<"Delete successful\n";
+  chatroomcounter--;
 }
 else
 {
