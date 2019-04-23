@@ -20,6 +20,7 @@
 #include "chat_message.hpp"
 #include "login.hpp"
 #include "menu_chat.hpp"
+#include "chat_gui.hpp"
 
 
 char LOCAL_HOST[10] = "127.0.0.1";
@@ -150,6 +151,7 @@ int main(int argc, char* argv[])
   {
     Mymenu Mymenu;
     Mylogin Mylogin;
+    Mygui Mygui;
 
     boost::asio::io_context io_context;
 
@@ -241,14 +243,17 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
 
 			=>
 	*/
+  std::string menuArray[10];
     char compare_string[100];
-    std::cout << "WELCOME TO SUPERCHAT!\n";
+    //std::cout << "WELCOME TO SUPERCHAT!\n";
     //char input[50];
     int user_choice= 0; // will be a number between 1-3
 
     int quit_loop = 0;
     std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
-    std::cout<<"1.Enter Lobby\n"<<"2.Login\n"<<"3.Quit";
+    //std::cout<<"1.Enter Lobby\n"<<"2.Login\n"<<"3.Quit";
+    menuArray[]={"1.Enter Lobby", "2.Login", "3.Quit"};
+    user_choice = Mygui.ncurse_mainmenu(menuArray);
     while ( quit_loop != 1)
     {
 
