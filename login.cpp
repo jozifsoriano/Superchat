@@ -4,22 +4,50 @@
 #include <fstream>
 #include <vector>
 #include<iterator>
-
+#include <ncurses.h>
 
 
 
 int Mylogin::create_account()
 {
+  /*initscr();
+ cbreak();
+  noecho();
+  int ymax, xmax;
+  getmaxyx(stdscr,ymax,xmax);
+  WINDOW * l = newwin(6,xmax-12,ymax-8,5);
+  refresh();
+  wrefresh(l);
+
+  keypad(l,true);
+  //window
+
+  char usrnm[]="Enter username to create an account: ";
+  char pd[]="Enter password:";
+  char new_username[80];
+  char new_password[80];		/* message to be appeared on the screen */
+  //int row,col				/* to store the number of rows and *
+           /* the number of colums of the screen */
+           		/* get the number of rows and columns */
+  //  mvprintw(row/3,(col-strlen(usrnm))/2,"%s",usrnm);
+//  mvprintw(ymax/3,0,"%s",usrnm);
+                          /* print the message at the center of the screen */
+  //getstr(new_username);
+  //mvprintw(ymax/2,0,"%s",pd);
+  //getstr(new_password);
+  //getch();
+  //endwin();
   int x=0;
   int y=0;
   std::string line;
+
   while(x==0)
   {
   std::cout<<"Enter a username to create an account: ";
   std::cin>> new_username;
   std::cout<<"Enter a password to create an account: ";
   std::cin>> new_password;
-  std::ifstream myfile("login.txt",std::ios_base::app);
+  std::ifstream myfile("login.txt");
   if (myfile.is_open())
    {
      while ( getline (myfile,line) )
@@ -71,7 +99,7 @@ std::cout<<"Enter username: ";
 std::cin>>new_username;
 std::cout<<"Enter password: ";
 std::cin>>new_password;
-std::ifstream imyfile("login.txt",std::ios_base::app);
+std::ifstream imyfile("login.txt");
 if (imyfile.is_open())
  {
    while ( getline (imyfile,line) )

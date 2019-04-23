@@ -243,7 +243,7 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
 
 			=>
 	*/
-  std::string menuArray[10];
+
     char compare_string[100];
     //std::cout << "WELCOME TO SUPERCHAT!\n";
     //char input[50];
@@ -252,16 +252,16 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
     int quit_loop = 0;
     std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
     //std::cout<<"1.Enter Lobby\n"<<"2.Login\n"<<"3.Quit";
-    menuArray[]={"1.Enter Lobby", "2.Login", "3.Quit"};
-    user_choice = Mygui.ncurse_mainmenu(menuArray);
+
+    user_choice = Mygui.ncurse_mainmenu();
     while ( quit_loop != 1)
     {
 
       while ( user_choice != 3)
       {
 
-        std::cout << "\n\n<sUpErChAt> ";
-        std::cin >> user_choice;
+        //std::cout << "\n\n<sUpErChAt> ";
+        //std::cin >> user_choice;
         if (user_choice==1)//Enter Lobby
         {
           user_created_room = "9000";
@@ -270,9 +270,7 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
         }
         if(user_choice==2)//enter chatroom
         {
-          std::cout<<"1.create_account\n";
-          std::cout<<"Already have an account? Press 2.login\n";
-          std::cin>>user_choice;
+          user_choice=Mygui.ncurse_loginmenu();
           if(user_choice==1)
           {
           int auth_login = Mylogin.create_account();
@@ -291,9 +289,10 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
             int auth_login = Mylogin.login(false);
           }
           }
+            user_choice = Mygui.ncurse_chatroommenu();
             Mymenu.print_menu();
-            std::cout << "\n\n<sUpErChAt> ";
-            std::cin >> user_choice;
+            //std::cout << "\n\n<sUpErChAt> ";
+            //std::cin >> user_choice;
           //show available chatrooms
           if (user_choice==1)
           {

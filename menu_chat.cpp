@@ -10,15 +10,11 @@ void Mymenu::print_menu()
 {
   int j =0;
   std::string line;
-  std::string menuArray[10];
-  menuArray[0]= "1.Enter CHATROOM";
-  menuArray[1]= "2.Create CHATROOM";
-  menuArray[2]= "3.Delete CHATROOM";
-  menuArray[3]= "4.Quit";
-  for(int i=0; i< 4; i++)
-  {
-    std::cout<<menuArray[i]<<"\n";
-  }
+
+  //for(int i=0; i< 4; i++)
+  //{
+    //std::cout<<ChatroomMenu[i]<<"\n";
+  //}
 
   std::ifstream myfile("chatroom.txt");
   if (myfile.is_open())
