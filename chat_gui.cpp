@@ -20,12 +20,14 @@ void interface::setup(){
   initscr();
   cbreak();
   noecho();
+  curs_set(0);
 
   //whole window
   set_rsize();
   create_main_box();
   create_members_box();
   create_input_box();
+  keypad(main,TRUE);
   refresh();
   wrefresh(main);
   wrefresh(members);
@@ -100,21 +102,24 @@ std::string interface::get_input(WINDOW *w, char *name){
   int i=0;
   refresh();
   wrefresh(w);
-  mvwprintw(w,1,1,"%s: ",name);
+  mvwprintw(w,2,1,"%s: ",name);
   refresh();
   wrefresh(w);
   do{
     char temp;
-    temp = getch();
+    temp = wgetch(w);
     if(temp == 10){
       flag = FALSE;
     }else if(temp == 47){//chars that cant be used
 
-    }else if((temp>=32)&&(temp<=127)){
+    }else if((temp>=32)&&(temp<=126)){
+      wclear(w);
       in_str[i] = temp;
       mvwprintw(w,1,strlen(name)+2,"%s",in_str);
       wrefresh(w);
       i++;
+    }else if (temp == 127){
+
     }else if (temp == 27){
       exit(1);
     }
@@ -131,15 +136,13 @@ login::login(){
   //flag for movement keys
   bool flag = TRUE;
   setup();
-  //enable arrow keys
-  keypad(main,TRUE);
 
   //options
   std::string options[3] = {"Login", "Create account","Exit"};
   int choice;
   int highlight = 0;
 
-  while(flag){
+  while(flag==TRUE){
     //empty input_ID and input_password
     //for loop write options with background color highlight
     input_ID = input_password = "";
@@ -170,18 +173,15 @@ login::login(){
           clear();
           flag = run_login();
           setup();
-          break;
-        }
-        if(highlight==1){
+        }else if(highlight==1){
           clear();
           create_account();
           setup();
-          break;
-        }
-        if (highlight==2){
+        }else if (highlight==2){
           flag = FALSE;
           quit_flag = FALSE;
         }
+        break;
       case 27:
           flag = FALSE;
           quit_flag = FALSE;
@@ -217,7 +217,7 @@ bool login::run_login(){
   wrefresh(input);
   clear();
   if(validate_credentials()==FALSE){
-    return true;
+    return TRUE;
   }else{
     return FALSE;
   }
@@ -281,8 +281,6 @@ menu::menu(){
   //flag for movement keys
   bool flag = TRUE;
   setup();
-  //enable arrow keys
-  keypad(main,TRUE);
 
   //options
   std::string options[4] = {"Join Lobby","Join Room","Create Room","Exit"};
@@ -317,15 +315,15 @@ menu::menu(){
         if(highlight==0){
           clear();
           join_lobby();
-          flag = FALSE;
+          //flag = FALSE;
         }else if(highlight==1){
           clear();
           join_room();
-          flag = FALSE;
+          //flag = FALSE;
         }else if(highlight==2){
           clear();
           create_room();
-          flag = FALSE;
+          //flag = FALSE;
         }else if(highlight==3){
           endwin();
           flag = FALSE;

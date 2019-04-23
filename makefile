@@ -6,7 +6,7 @@ CXXFLAGS=-Wall -O0 -g -std=c++11
 
 all: chat_client chat_server
 
-COMMON_HEADER = chat_message.hpp ncurse_gui.hpp 
+COMMON_HEADER = chat_message.hpp ncurse_gui.hpp
 
 chat_client.o: $(COMMON_HEADER) chat_client.cpp
 
@@ -35,5 +35,5 @@ directories:
 
 
 clean:
-	-rm -f chat_client chat_server chat_client.o chat_server.o a.out chat_gui.o
+	-rm -f chat_client chat_server chat_client.o chat_server.o a.out chat_gui.o ./zexample/a.out
 	-rm -rf bin src res include obj

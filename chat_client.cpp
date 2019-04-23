@@ -153,10 +153,14 @@ int main(int argc, char* argv[]){
   if (l.quit_flag == FALSE){
     return 0;
   }
-  while(running ){
+  while(running){
     menu m;
-    running = m.quit_flag;
+    running = m.continue_flag;
+    if(m.quit_flag == FALSE){
+      return 0;
+    }
   }
+  
 
   /*
   try{

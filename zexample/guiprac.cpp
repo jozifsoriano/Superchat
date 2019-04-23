@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string.h>
 
+//gcc -WALL
 int main(int argc, char** argv)
 {
   //FILE STUFF

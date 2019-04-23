@@ -12,11 +12,15 @@
   * [ ] all of client in header? that way we can use the functions inside chat_gui
   * [ ] implement saurav code
     * [ ] turn to ncurses
+  * [ ] figure out receiving and sending info
+  * [ ] connecting the gui::room to chat_server
   * [ ] 9000 is default, 9001 lobby, 9002-9011 is new rooms.
+  * [ ] for recent_msgs_msgs, deliver msgs using ncurses
   * [ ] ncurses windows with the asio examples
   * [ ] implenting more chat_sessions for chat rooms
   * [x] read commands
   * [ ] redo UML diagram
+  
 
 - [ ] testing requirements and report
   * [ ] josh and ryan <------
