@@ -8,6 +8,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <string.h>
+#include <vector>
 #include<cstring>
 #include <cstdlib>
 #include <deque>
@@ -17,7 +18,9 @@
 #include "asio.hpp"
 #include <ncurses.h>
 #include "chat_message.hpp"
+#include "login.hpp"
 #include "menu_chat.hpp"
+
 
 char LOCAL_HOST[10] = "127.0.0.1";
 char*a = LOCAL_HOST;
@@ -146,6 +149,7 @@ int main(int argc, char* argv[])
   try
   {
     Mymenu Mymenu;
+    Mylogin Mylogin;
 
     boost::asio::io_context io_context;
 
@@ -244,7 +248,7 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
 
     int quit_loop = 0;
     std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
-    std::cout<<"1.Enter Lobby\n"<<"2.CHATROOMs\n"<<"3.Quit";
+    std::cout<<"1.Enter Lobby\n"<<"2.Login\n"<<"3.Quit";
     while ( quit_loop != 1)
     {
 
@@ -261,6 +265,27 @@ results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
         }
         if(user_choice==2)//enter chatroom
         {
+          std::cout<<"1.create_account\n";
+          std::cout<<"Already have an account? Press 2.login\n";
+          std::cin>>user_choice;
+          if(user_choice==1)
+          {
+          int auth_login = Mylogin.create_account();
+          while(auth_login==0)
+          {
+            std::cout<<"unsuccessful";
+            int auth_login = Mylogin.create_account();
+          }
+          }
+          if(user_choice==2)
+          {
+          int auth_login = Mylogin.login(false);
+          while(auth_login==0)
+          {
+            std::cout<<"unsuccessful";
+            int auth_login = Mylogin.login(false);
+          }
+          }
             Mymenu.print_menu();
             std::cout << "\n\n<sUpErChAt> ";
             std::cin >> user_choice;
