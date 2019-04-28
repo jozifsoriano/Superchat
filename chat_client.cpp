@@ -7,6 +7,7 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+/*
 #include <string.h>
 #include <cstring>
 #include <cstdlib>
@@ -16,6 +17,17 @@
 #include "asio.hpp"
 #include <ncurses.h>
 #include "chat_message.hpp"
+#include "ncurse_gui.hpp"
+*/
+#include <cstdlib>
+#include <deque>
+#include <iostream>
+#include <thread>
+
+
+#include "asio.hpp"
+#include "chat_message.hpp"
+#include <ncurses.h>
 #include "ncurse_gui.hpp"
 
 using boost::asio::ip::tcp;
@@ -31,8 +43,7 @@ int chatroomcounter=0;
 */
 
 
-class chat_client
-{
+class chat_client: public room{
 public:
   chat_client(boost::asio::io_context& io_context,
       const tcp::resolver::results_type& endpoints)
@@ -146,40 +157,44 @@ int main(int argc, char* argv[]){
   //main variables
   bool running = TRUE;
   std::string LOCAL_HOST = "127.0.0.1";
+  menu m;
 
   //run login screen
   //continues when logged in or quits when
+
   login l;
   if (l.quit_flag == FALSE){
     return 0;
   }
   while(running){
-    menu m;
+    m.create_menu();
     running = m.continue_flag;
     if(m.quit_flag == FALSE){
       return 0;
     }
   }
-  
 
-  /*
+
+  ///*
   try{
-    asio::io_service io_service;
+    boost::asio::io_service io_service;
 
     tcp::resolver resolver(io_service);
-    auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.port_num});
+    auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.get_port()});
     chat_client c(io_service, endpoint_iterator);
 
     std::thread t([&io_service](){ io_service.run(); });
 
     char line[chat_message::max_body_length + 1];
-    while (std::cin.getline(line, chat_message::max_body_length + 1))
-    {
+
+    //while (std::cin.getline(line, chat_message::max_body_length + 1))
+    while(c.continue_flag){
       chat_message msg;
       msg.body_length(std::strlen(line));
       std::memcpy(msg.body(), line, msg.body_length());
       msg.encode_header();
       c.write(msg);
+
     }
 
     c.close();
@@ -188,7 +203,7 @@ int main(int argc, char* argv[]){
   catch (std::exception& e)
   {
     std::cerr << "Exception: " << e.what() << "\n";
-  }*/
+  }//*/
 
 
 

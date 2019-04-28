@@ -13,12 +13,12 @@ protected:
 
   int isize = 3;
   int rsize;
-  void setup();
-  void draw_borders(WINDOW *w);
-  void create_main_box();
-  void create_members_box();
-  void create_input_box();
-  void set_rsize();
+  void setup();//js
+  void draw_borders(WINDOW *w);//js
+  void create_main_box();//js
+  void create_members_box();//js
+  void create_input_box();//js
+  void set_rsize();//js
   std::string get_input(WINDOW *w, char *name);
   bool check_command();
 public:
@@ -27,24 +27,25 @@ public:
 
 };
 
-class login: public interface{
+class login: public interface{//js
   std::string input_ID;
   std::string input_password;
 private:
-  bool validate_credentials();
-  void create_account();
-  bool run_login();
+  bool validate_credentials();//js
+  void create_account();//js
+  bool run_login();//js
 public:
-  login();
-  ~login();
+  login();//js
+  ~login();//js
 };
 
 class menu: public interface{
 public:
-  menu();
+  void create_menu();//js
   void join_room();
   void join_lobby();
   void create_room();
+  std::string get_port();//js
   bool continue_flag;
   ~menu();
 protected:
@@ -60,6 +61,7 @@ public:
 public:
   room();
   void print_recent_msgs();
+  void print_users();
   ~room();
 };
 

@@ -226,7 +226,7 @@ bool login::run_login(){
 //compares the id and password
 bool login::validate_credentials(){
   std::string checkid, checkpw, fstring;
-  std::ifstream flogin("~Superchat");
+  std::ifstream flogin("./res/~Superchat");
   while(std::getline(flogin,fstring)){
     std::string delimiter = "/";
     size_t pos = 0;
@@ -277,7 +277,7 @@ login::~login(){
 }
 
 
-menu::menu(){
+void menu::create_menu(){
   //flag for movement keys
   bool flag = TRUE;
   setup();
@@ -352,7 +352,17 @@ void menu::create_room(){
 
 }
 
-
+std::string menu::get_port(){
+  return port_num;
+}
 menu::~menu(){
+  endwin();
+}
+
+room::room(){
+  continue_flag = TRUE;
+}
+
+room::~room(){
   endwin();
 }

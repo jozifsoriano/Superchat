@@ -299,8 +299,8 @@ static void init_readline(void)
     rl_getc_function = readline_getc;
     rl_input_available_hook = readline_input_avail;
     rl_redisplay_function = readline_redisplay;
-
-    rl_callback_handler_install("> ", got_command);
+    char string[] = ">.< uwu t._.t   ---> ";
+    rl_callback_handler_install(string, got_command);
 }
 
 static void deinit_readline(void)
