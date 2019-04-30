@@ -7,6 +7,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "ncurse_gui.hpp"
+#include "gui_input.hpp"
 #include <fstream>
 
 //return the userID
@@ -131,6 +132,14 @@ std::string interface::get_input(WINDOW *w, char *name){
   return str;
 }
 
+void interface::set_userID(std::string s){
+  userID = s;
+}
+
+WINDOW *interface::get_inputw(){
+  return input;
+}
+
 //main login screen when login is declared in client
 login::login(){
   //flag for movement keys
@@ -217,16 +226,17 @@ bool login::run_login(){
   wrefresh(input);
   clear();
   if(validate_credentials()==FALSE){
-    return TRUE;
+    return TRUE;//return true to keep loop running if NOT valid login
   }else{
-    return FALSE;
+    set_userID(input_ID);
+    return FALSE;//end loop if valid login
   }
 }
 
 //compares the id and password
 bool login::validate_credentials(){
   std::string checkid, checkpw, fstring;
-  std::ifstream flogin("./res/~Superchat");
+  std::ifstream flogin("~Superchat");
   while(std::getline(flogin,fstring)){
     std::string delimiter = "/";
     size_t pos = 0;
@@ -277,11 +287,11 @@ login::~login(){
 }
 
 
-void menu::create_menu(){
+void menu::init_menu(std::string id){
   //flag for movement keys
   bool flag = TRUE;
   setup();
-
+  set_userID(id);
   //options
   std::string options[4] = {"Join Lobby","Join Room","Create Room","Exit"};
   int choice;
@@ -315,19 +325,20 @@ void menu::create_menu(){
         if(highlight==0){
           clear();
           join_lobby();
-          //flag = FALSE;
+          flag = FALSE;
         }else if(highlight==1){
           clear();
           join_room();
-          //flag = FALSE;
+          flag = FALSE;
         }else if(highlight==2){
           clear();
           create_room();
-          //flag = FALSE;
+          flag = FALSE;
         }else if(highlight==3){
           endwin();
           flag = FALSE;
           quit_flag = FALSE;
+          continue_flag = FALSE;
         }
     }
     if(choice==27){
@@ -346,9 +357,11 @@ void menu::join_room(){
   setup();
   char jr[] = "Enter room num: ";
   port_num = get_input(input,jr);
+
 }
 
 void menu::create_room(){
+  setup();
 
 }
 
@@ -356,13 +369,5 @@ std::string menu::get_port(){
   return port_num;
 }
 menu::~menu(){
-  endwin();
-}
-
-room::room(){
-  continue_flag = TRUE;
-}
-
-room::~room(){
   endwin();
 }

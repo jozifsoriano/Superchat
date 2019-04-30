@@ -24,26 +24,18 @@
 #include <iostream>
 #include <thread>
 
-
 #include "asio.hpp"
 #include "chat_message.hpp"
 #include <ncurses.h>
 #include "ncurse_gui.hpp"
+#include "gui_input.hpp"
+
 
 using boost::asio::ip::tcp;
 
 typedef std::deque<chat_message> chat_message_queue;
 
-//saurav
-/*
-char LOCAL_HOST[10] = "127.0.0.1";
-char*a = LOCAL_HOST;
-int createroom=0;
-int chatroomcounter=0;
-*/
-
-
-class chat_client: public room{
+class chat_client: public menu{
 public:
   chat_client(boost::asio::io_context& io_context,
       const tcp::resolver::results_type& endpoints)
@@ -53,6 +45,11 @@ public:
     do_connect(endpoints);
   }
 
+  void init_client(std::string id){
+    setup();
+    set_userID(id);
+
+  }
   void write(const chat_message& msg)
   {
     boost::asio::post(io_context_,
@@ -72,6 +69,38 @@ public:
     boost::asio::post(io_context_, [this]() { socket_.close(); });
   }
 
+  void print_recent_msgs(){
+
+  }
+
+  void print_users(){
+
+  }
+
+  void init_room(){
+    setup();
+  }
+  /*void run_client(){
+    std::thread t([&io_service](){ io_service.run(); });
+
+    char line[chat_message::max_body_length + 1];
+
+    //while (std::cin.getline(line, chat_message::max_body_length + 1)){
+    while(c.continue_flag){
+      chat_message msg;
+      msg.body_length(std::strlen(line));
+      std::string sline;
+      sline = c.get_input();
+      std::memcpy(msg.body(), line, msg.body_length());
+      msg.encode_header();
+      c.write(msg);
+
+    }
+
+    c.close();
+    t.join();
+  }*/
+  std::string name;
 private:
   void do_connect(const tcp::resolver::results_type& endpoints)
   {
@@ -106,12 +135,24 @@ private:
   {
     boost::asio::async_read(socket_,
         boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
-        [this](std::error_code ec, std::size_t length)
+        [this](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
-            std::cout.write(read_msg_.body(), read_msg_.body_length());
-            std::cout << "\n";
+            // Want to make a very clean transition between
+            // the data coming in and the string handed to ncurses.
+            // More complicated than it needs to be, but a high
+            // assurance that no extra characters get displayed
+            char *outline = (char*) malloc(read_msg_.body_length() + 1);
+            memset(outline,'\0',read_msg_.body_length() + 1);
+            memcpy(outline,read_msg_.body(),read_msg_.body_length());
+            wprintw(main,outline);
+            wrefresh(main);
+            //printw(outline);
+            free(outline);
+
+            //std::cout.write(read_msg_.body(), read_msg_.body_length());
+            //std::cout << "\n";
             do_read_header();
           }
           else
@@ -160,50 +201,52 @@ int main(int argc, char* argv[]){
   menu m;
 
   //run login screen
-  //continues when logged in or quits when
+  //continues when logged in or quits when quit_flag is false
 
   login l;
   if (l.quit_flag == FALSE){
     return 0;
   }
   while(running){
-    m.create_menu();
+    m.init_menu(l.get_user());
     running = m.continue_flag;
     if(m.quit_flag == FALSE){
       return 0;
     }
-  }
+    ///*
+    try{
+      boost::asio::io_service io_service;
 
+      tcp::resolver resolver(io_service);
+      auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.get_port()});
+      chat_client c(io_service, endpoint_iterator);
+      std::thread t([&io_service](){ io_service.run(); });
+      //char line[chat_message::max_body_length + 1];
+      std::string sline;
+      c.init_client(l.get_user());
+      char *uid =&c.get_user()[0u];
+      //while (std::cin.getline(line, chat_message::max_body_length + 1)){
+      while(c.continue_flag){
+        chat_message msg;
+        //msg.body_length(std::strlen(line));
+        sline = c.get_input(c.get_inputw(),uid);
+        msg.body_length(sline.length());
+        std::memcpy(msg.body(), sline.c_str(), msg.body_length());
+        msg.encode_header();
+        c.write(msg);
 
-  ///*
-  try{
-    boost::asio::io_service io_service;
+      }
 
-    tcp::resolver resolver(io_service);
-    auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.get_port()});
-    chat_client c(io_service, endpoint_iterator);
-
-    std::thread t([&io_service](){ io_service.run(); });
-
-    char line[chat_message::max_body_length + 1];
-
-    //while (std::cin.getline(line, chat_message::max_body_length + 1))
-    while(c.continue_flag){
-      chat_message msg;
-      msg.body_length(std::strlen(line));
-      std::memcpy(msg.body(), line, msg.body_length());
-      msg.encode_header();
-      c.write(msg);
+      c.close();
+      t.join();
 
     }
+    catch (std::exception& e)
+    {
+      std::cerr << "Exception: " << e.what() << "\n";
+    }//*/
 
-    c.close();
-    t.join();
   }
-  catch (std::exception& e)
-  {
-    std::cerr << "Exception: " << e.what() << "\n";
-  }//*/
 
 
 
