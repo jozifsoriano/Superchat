@@ -7,8 +7,132 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "ncurse_gui.hpp"
-#include "gui_input.hpp"
 #include <fstream>
+
+
+static size_t strnwidth(const char *s, size_t n, size_t offset){
+  mbstate_t shift_state;
+  wchar_t wc;
+  size_t wc_len;
+  size_t width = 0;
+  memset(&shift_state, '\0', sizeof shift_state);
+  for (size_t i = 0; i < n; i += wc_len) {
+    wc_len = mbrtowc(&wc, s + i, MB_CUR_MAX, &shift_state);
+    switch (wc_len) {
+    case 0:
+      goto done;
+    case (size_t)-1: case (size_t)-2:
+      width += strnlen(s + i, n - i);
+      goto done;
+    }
+    if (wc == '\t'){
+      width = ((width + offset + 8) & ~7) - offset;
+    }else{
+      width += iswcntrl(wc) ? 2 : std::max(0, wcwidth(wc));
+    }
+  }
+
+done:
+  return width;
+}
+
+static size_t strwidth(const char *s, size_t offset){
+  return strnwidth(s, SIZE_MAX, offset);
+}
+
+int readline_input_avail(void){
+  return input_avail;
+}
+
+int readline_getc(FILE *dummy){
+  input_avail=FALSE;
+  return cinput;
+}
+
+void got_command(char *line){
+  if (!line){
+    // Ctrl-D pressed on empty line
+    should_exit = TRUE;
+  }else{
+    if (*line){
+      add_history(line);
+    }
+    free(msg_win_str);
+    msg_win_str = line;
+    //msg_win_redisplay(false);
+  }
+}
+
+void forward_to_readline(char c){
+  cinput = c;
+  input_avail = TRUE;
+  rl_callback_read_char();
+}
+
+void init_readline(char *name){
+  rl_catch_signals = 0;
+  rl_catch_sigwinch = 0;
+  rl_deprep_term_function = NULL;
+  rl_prep_term_function = NULL;
+  rl_change_environment = 0;
+  rl_getc_function = readline_getc;
+  rl_input_available_hook = readline_input_avail;
+  //rl_callback_handler_install(name, got_command);
+  rl_callback_handler_install("> ", got_command);
+}
+
+static void input_redisplay(WINDOW *w, bool for_resize){
+  size_t prompt_width = strwidth(rl_display_prompt, 0);
+  size_t cursor_col = prompt_width + strnwidth(rl_line_buffer, rl_point, prompt_width);
+
+  werase(w);
+  mvwprintw(w, 1, 1, "%s%s", rl_display_prompt, rl_line_buffer);
+  if(cursor_col>= COLS){
+    curs_set(0);
+  }else{
+    wmove(w,1,cursor_col);
+    curs_set(2);
+  }
+  if (for_resize){
+    wnoutrefresh(w);
+  }else{
+    wrefresh(w);
+  }
+}
+
+static void readline_redisplay(WINDOW *w){
+  input_redisplay(w, FALSE);
+}
+
+static void resize(WINDOW *w){
+  input_redisplay(w, TRUE);
+  doupdate();
+}
+std::string get_rlinput(WINDOW *w, char *name){
+  init_readline(name);
+
+  //refresh();
+  //wrefresh(w);
+  do{
+    int c = wgetch(w);
+    switch(c){
+    case 10:
+      //should_exit=TRUE;
+    case KEY_RESIZE:
+      resize(w);
+      break;
+    case '\f':
+      clearok(curscr, TRUE);
+      resize(w);
+      break;
+    default:
+      forward_to_readline(c);
+
+    }
+  }while(!should_exit);
+  std::string s(msg_win_str);
+  return s;
+}
 
 //return the userID
 std::string interface::get_user(){
@@ -212,6 +336,7 @@ bool login::run_login(){
   mvwprintw(main,20,10,"PASSWORD:  ");
   wrefresh(main);
 
+  //input_ID = get_rlinput(input,id_str);
   input_ID = get_input(input, id_str);
   mvwprintw(main,15,10,"USER ID:   %s",input_ID.c_str());
   wclear(input);
@@ -219,6 +344,7 @@ bool login::run_login(){
   wrefresh(input);
 
   input_password = get_input(input, pw_str);
+  //input_password = get_rlinput(input,pw_str);
   mvwprintw(main,20,10,"PASSWORD: (hidden)");
   refresh();
   wclear(input);
@@ -262,12 +388,14 @@ void login::create_account(){
   mvwprintw(main,20,10,"PASSWORD:  ");
   wrefresh(main);
   input_ID = get_input(input, id_str);
+  //input_ID = get_rlinput(input,id_str);
   mvwprintw(main,15,10,"USER ID:   %s",input_ID.c_str());
   wclear(input);
   create_input_box();
   wrefresh(main);
   wrefresh(input);
   input_password = get_input(input, pw_str);
+  //input_password = get_rlinput(input,pw_str);
   mvwprintw(main,20,10,"PASSWORD: (hidden)");
   refresh();
   wclear(input);
@@ -357,6 +485,7 @@ void menu::join_room(){
   setup();
   char jr[] = "Enter room num: ";
   port_num = get_input(input,jr);
+  //port_num = get_rlinput(input,jr);
 
 }
 

@@ -16,7 +16,7 @@
 #include <set>
 #include <utility>
 #include "asio.hpp"
-#include "chat_message.hpp"
+#include "prof_chat_message.hpp"
 
 using asio::ip::tcp;
 

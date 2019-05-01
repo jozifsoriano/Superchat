@@ -28,8 +28,10 @@
 #include "chat_message.hpp"
 #include <ncurses.h>
 #include "ncurse_gui.hpp"
-#include "gui_input.hpp"
+#include <readline/readline.h>
+#include <readline/history.h>
 
+extern char *msg_win_str;
 
 using boost::asio::ip::tcp;
 
@@ -199,10 +201,8 @@ int main(int argc, char* argv[]){
   bool running = TRUE;
   std::string LOCAL_HOST = "127.0.0.1";
   menu m;
-
   //run login screen
   //continues when logged in or quits when quit_flag is false
-
   login l;
   if (l.quit_flag == FALSE){
     return 0;
@@ -230,6 +230,7 @@ int main(int argc, char* argv[]){
         chat_message msg;
         //msg.body_length(std::strlen(line));
         sline = c.get_input(c.get_inputw(),uid);
+        //sline = get_rlinput(c.get_inputw(),uid);
         msg.body_length(sline.length());
         std::memcpy(msg.body(), sline.c_str(), msg.body_length());
         msg.encode_header();
@@ -458,5 +459,6 @@ results_type resolve(BOOST_boost::asio_STRING_VIEW_PARAM host,
       std::cerr << "Exception: " << e.what() << "\n";
     }
   */
+  rl_callback_handler_remove();
   return 0;
 }

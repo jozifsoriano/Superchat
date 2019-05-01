@@ -15,7 +15,7 @@
 
 
 #include "asio.hpp"
-#include "chat_message.hpp"
+#include "prof_chat_message.hpp"
 #include <ncurses.h>
 
 using asio::ip::tcp;
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
     cbreak();
     echo();
     timeout(10);
-    
+
 #ifdef DEBUG
         // use 'tail -f debug' in
         // another terminal window
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 #endif
 
     char line[chat_message::max_body_length + 1]={'\0'};
-    
+
     int idx=0;
     while (1) // a ctrl-c will terminate the loop
     {
@@ -203,12 +203,12 @@ int main(int argc, char* argv[])
              break;
            case ERR: //
              break;
-           default: 
+           default:
              line[idx++] = ch;
         }
     }
 
-    
+
 #ifdef WAS
     while (std::cin.getline(line, chat_message::max_body_length + 1))
     {

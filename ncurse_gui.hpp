@@ -3,7 +3,19 @@
 
 #include <ncurses.h>
 #include <string>
-//#include "gui_input.hpp"
+#include <readline/history.h>
+#include <readline/readline.h>
+
+std::string get_rlinput(WINDOW *w, char *name);
+static char *msg_win_str = NULL;
+static unsigned char cinput;
+static bool input_avail = FALSE;
+static bool should_exit = FALSE;
+static void got_command(char *line);
+static void init_readline(char *name);
+static int readline_input_avail(void);
+static int readline_getc();
+static void forward_to_readline(char c);
 
 class interface{
   std::string userID;
