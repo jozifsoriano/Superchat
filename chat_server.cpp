@@ -25,6 +25,7 @@
 
 #include <cstdlib>
 #include <deque>
+#include <vector>
 #include <iostream>
 #include <list>
 #include <memory>
@@ -34,10 +35,11 @@
 #include "chat_message.hpp"
 
 using boost::asio::ip::tcp;
-//typedef std::map<int,string> chat
-int id = 0;
+
 #define MAX_LENGTH 255
 #define MAX_CHATROOM_ 10
+
+
 
 /* LIST OF SERVERS; USER WILL ACTUALLY NAME THE ROOM */
 
@@ -52,9 +54,8 @@ class chat_participant
 public:
   virtual ~chat_participant() {}
   virtual void deliver(const chat_message& msg) = 0;
-  char firstname[50];
-  char lastname[50];
   char username[100];
+  int room_num;
   void assign_id () { }
 
 };
@@ -80,7 +81,7 @@ public:
   {
     participants_.erase(participant);
   }
-  
+
   void deliver(const chat_message& msg, chat_participant_ptr participant){
     // deliver to a single participant
     participant->deliver(msg);
@@ -239,6 +240,7 @@ private:
 
   tcp::acceptor acceptor_;
   chat_room room_;
+  int room_num;
 };
 
 //----------------------------------------------------------------------

@@ -28,10 +28,10 @@
 #include "chat_message.hpp"
 #include <ncurses.h>
 #include "ncurse_gui.hpp"
-#include <readline/readline.h>
-#include <readline/history.h>
+//#include <readline/readline.h>
+//#include <readline/history.h>
 
-extern char *msg_win_str;
+//extern char *msg_win_str;
 
 using boost::asio::ip::tcp;
 
@@ -148,13 +148,13 @@ private:
             char *outline = (char*) malloc(read_msg_.body_length() + 1);
             memset(outline,'\0',read_msg_.body_length() + 1);
             memcpy(outline,read_msg_.body(),read_msg_.body_length());
-            wprintw(main,outline);
-            wrefresh(main);
+            //mvwprintw(main,1,1,outline);
+            //wrefresh(main);
             //printw(outline);
             free(outline);
 
-            //std::cout.write(read_msg_.body(), read_msg_.body_length());
-            //std::cout << "\n";
+            std::cout.write(read_msg_.body(), read_msg_.body_length());
+            std::cout << "\n";
             do_read_header();
           }
           else
@@ -221,18 +221,18 @@ int main(int argc, char* argv[]){
       auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.get_port()});
       chat_client c(io_service, endpoint_iterator);
       std::thread t([&io_service](){ io_service.run(); });
-      //char line[chat_message::max_body_length + 1];
-      std::string sline;
-      c.init_client(l.get_user());
-      char *uid =&c.get_user()[0u];
-      //while (std::cin.getline(line, chat_message::max_body_length + 1)){
-      while(c.continue_flag){
+      char line[chat_message::max_body_length + 1];
+      //std::string sline;
+      //c.init_client(l.get_user());
+      //char *uid =&c.get_user()[0u];
+      while (std::cin.getline(line, chat_message::max_body_length + 1)){
+      //while(c.continue_flag){
         chat_message msg;
-        //msg.body_length(std::strlen(line));
-        sline = c.get_input(c.get_inputw(),uid);
+        msg.body_length(std::strlen(line));
+        //sline = c.get_input(c.get_inputw(),uid);
         //sline = get_rlinput(c.get_inputw(),uid);
-        msg.body_length(sline.length());
-        std::memcpy(msg.body(), sline.c_str(), msg.body_length());
+        //msg.body_length(sline.length());
+        std::memcpy(msg.body(), line.c_str(), msg.body_length());
         msg.encode_header();
         c.write(msg);
 

@@ -4,12 +4,12 @@
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
-#include <readline/readline.h>
-#include <readline/history.h>
+//#include <readline/readline.h> //rl
+//#include <readline/history.h> //rl
 #include "ncurse_gui.hpp"
 #include <fstream>
 
-
+/*
 static size_t strnwidth(const char *s, size_t n, size_t offset){
   mbstate_t shift_state;
   wchar_t wc;
@@ -133,6 +133,7 @@ std::string get_rlinput(WINDOW *w, char *name){
   std::string s(msg_win_str);
   return s;
 }
+*/
 
 //return the userID
 std::string interface::get_user(){

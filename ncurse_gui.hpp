@@ -3,6 +3,7 @@
 
 #include <ncurses.h>
 #include <string>
+/*
 #include <readline/history.h>
 #include <readline/readline.h>
 
@@ -15,7 +16,7 @@ static void got_command(char *line);
 static void init_readline(char *name);
 static int readline_input_avail(void);
 static int readline_getc();
-static void forward_to_readline(char c);
+static void forward_to_readline(char c);*/
 
 class interface{
   std::string userID;
