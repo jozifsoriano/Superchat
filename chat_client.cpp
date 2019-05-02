@@ -232,7 +232,7 @@ int main(int argc, char* argv[]){
         //sline = c.get_input(c.get_inputw(),uid);
         //sline = get_rlinput(c.get_inputw(),uid);
         //msg.body_length(sline.length());
-        std::memcpy(msg.body(), line.c_str(), msg.body_length());
+        std::memcpy(msg.body(), line, msg.body_length());
         msg.encode_header();
         c.write(msg);
 
@@ -459,6 +459,5 @@ results_type resolve(BOOST_boost::asio_STRING_VIEW_PARAM host,
       std::cerr << "Exception: " << e.what() << "\n";
     }
   */
-  rl_callback_handler_remove();
   return 0;
 }
