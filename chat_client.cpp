@@ -41,9 +41,14 @@ std::string nick;
 bool return_to_menu = FALSE;
 std::string input_command;
 std::string rest_of_message;
-
+std::vector<std::string> blocked_users;
 
 typedef std::deque<chat_message> chat_message_queue;
+
+bool check_mute(char *user);
+void add_mute(char *user);
+void unmute(char *user);
+void self_mute(char *cp_user);
 
 class chat_client: public menu{
 public:
@@ -87,8 +92,8 @@ public:
 
   void init_room(){
     setup();
-  }*/
-  /*void run_client(){
+  }
+  void run_client(){
     std::thread t([&io_service](){ io_service.run(); });
 
     char line[chat_message::max_body_length + 1];
@@ -108,6 +113,7 @@ public:
     c.close();
     t.join();
   }*/
+
   std::string name;
 private:
   void do_connect(const tcp::resolver::results_type& endpoints)
@@ -151,16 +157,34 @@ private:
             // the data coming in and the string handed to ncurses.
             // More complicated than it needs to be, but a high
             // assurance that no extra characters get displayed
-            char *outline = (char*) malloc(read_msg_.body_length() + 1);
+            char *outline = (char*)malloc(read_msg_.body_length() + 1);
+            char *cp_user=(char*)malloc(15*sizeof(char));
+            char *cp_rom=(char*)malloc(150*sizeof(char));
+
+
+            //printf("DEBUG outline: %s \n", outline);
+            //printf("DEBUG uid: %s \n",cp_user);
+
+            free(cp_rom);
             memset(outline,'\0',read_msg_.body_length() + 1);
             memcpy(outline,read_msg_.body(),read_msg_.body_length());
+            std::string temp(outline);
+            //std::cout << "DEBUG STRING: " << temp << std::endl;
+            //printf("DEBUG outline: %s \n", outline);
+            //printf("DEBUG uid: %s \n",cp_user);
+            sscanf(temp.c_str(),"%s %150[^\n]",cp_user, cp_rom);
             //mvwprintw(main,1,1,outline);
             //wrefresh(main);
             //printw(outline);
             free(outline);
 
-            std::cout.write(read_msg_.body(), read_msg_.body_length());
-            std::cout << "\n";
+            //if user blocked
+            if(!check_mute(cp_user)){
+              //printf("DEBUG NOT MUTED\n");
+              std::cout.write(read_msg_.body(), read_msg_.body_length());
+              std::cout << "\n";
+            }
+            free(cp_user);
             do_read_header();
           }
           else
@@ -208,9 +232,9 @@ void add_user_to_msg(char line[],std::string userID){
     //printf("%d %c %c \n", i, new_line[i],uid[i]);
     i++;
   }
-  new_line[i] = 58;
+  new_line[i] = 58;//:
   i++;
-  new_line[i] = 32;
+  new_line[i] = 32;//[space]
   i++;
   while(line[j]!='\0'){
     new_line[i+j]=line[j];
@@ -222,10 +246,12 @@ void add_user_to_msg(char line[],std::string userID){
 
 void print_commands(){
   printf("The current commands supported are: \n");
-  printf("2.) /nick <nickname>");
-  printf("1.) /help \t (prints commands and usage)\n");
-  printf("3.) /quit \t (return to menu)\n");
-  printf("4.) /exit \t (exit the program)\n");
+  printf("1.) /nick <nickname> \t (set your display name) \n");
+  printf("2.) /mute <username> \t (mutes the user with display name user <username>)\n");
+  printf("3.) /unmute <username> \t (unmutes the user with display name user <username>)\n");
+  printf("4.) /help \t (prints commands and usage)\n");
+  printf("5.) /quit \t (return to menu)\n");
+  printf("6.) /exit \t (exit the program)\n");
 
 }
 
@@ -242,6 +268,39 @@ bool check_command(std::string c){
       exit(0);
     }else if(strcmp(cp_command,"/help")==0){
       print_commands();
+    }else if(strcmp(cp_command,"/nick")==0){
+      char cp_nick[15];
+      sscanf(cp_rom,"%s",cp_nick);
+      std::string temp(cp_nick);
+      nick = temp;
+      printf("Your new display name is %s. \n",cp_nick);
+    }else if(strcmp(cp_command,"/mute")==0){
+      char cp_user[15];
+      char new_user[16];
+      sscanf(cp_rom,"%s",cp_user);
+      //printf("DEBUG: MUTING %s\n",cp_user);
+      int i = 0;
+      while (cp_user[i]!= '\0') {
+        new_user[i] = cp_user[i];
+        i++;
+      }
+      new_user[i] = 58;//:
+      i++;
+      //printf("DEBUG: NEW USER -> \t %s",new_user);
+      add_mute(new_user);
+    }else if(strcmp(cp_command,"/unmute")==0){
+      char cp_user[15];
+      char new_user[16];
+      sscanf(cp_rom,"%s",cp_user);
+      //printf("DEBUG: MUTING %s\n",cp_user);
+      int i = 0;
+      while (cp_user[i]!= '\0') {
+        new_user[i] = cp_user[i];
+        i++;
+      }
+      new_user[i] = 58;//:
+      i++;
+      unmute(new_user);
     }else{
       printf("%s !!NOT A RECOGNIZED COMMAND!!\n", cp_command);
       printf("Type '/help' to get command list.\n");
@@ -256,7 +315,51 @@ bool check_command(std::string c){
   }
 
 }
+void add_mute(char *user){
+  std::string temp(user);
+  for(auto str : blocked_users){
+    if(temp.compare(str)==0){
+      printf("!!User Already Blocked!! \n");
+      std::cout << "ADD: " << temp << std::endl;
+      return;
+    }
+  }
+  blocked_users.push_back(temp);
+}
 
+
+bool check_mute(char *user){
+  std::string temp(user);
+  for(auto str : blocked_users){
+    if(temp.compare(str)==0){
+      //std::cout << "CHECK: " << temp << std::endl;
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+void unmute(char *user){
+  std::string temp(user);
+  for(int i =0 ; i < blocked_users.size();i++){
+    if(temp.compare(blocked_users.at(i))==0){
+      //std::cout << "UNMUTE: " << temp << std::endl;
+      blocked_users.erase(blocked_users.begin()+i);//blocked_users
+    }
+  }
+}
+
+void self_mute(std::string nick){
+  char new_user[16];
+  int i = 0;
+  while (nick[i]!= '\0') {
+    new_user[i] = nick[i];
+    i++;
+  }
+  new_user[i] = 58;//:
+  i++;
+  add_mute(new_user);
+}
 //-------------------------------------------------
 int main(int argc, char* argv[]){
   //main variables
@@ -269,7 +372,12 @@ int main(int argc, char* argv[]){
   if (l.quit_flag == FALSE){
     return 0;
   }
-  nick = l.get_user();
+  if(l.get_user().compare("")==0){
+    nick="Guest";
+  }else{
+    nick = l.get_user();
+  }
+  self_mute(nick);
 menu:
   return_to_menu = FALSE;
   running = TRUE;
