@@ -1,0 +1,45 @@
+-asio folder
+ ./configure --prefix=$HOME/asio_install
+ make install
+ find ./asio_install/ -name "*.so"  ##dont need
+ mkdir project
+ cd project
+ ls
+ find /home/bdavis/asio-1.12.2/ -name "chat*.cpp"
+ cp /home/bdavis/asio-1.12.2/src/
+================================================================
+-chat_client
+ cstdlib
+ deque
+ iostream
+ thread
+ ncurses
+ asio
+ ================================================================
+ -##rename timeout so there is no conflict
+ basic_socket_streambuf.hpp
+ ncurses.h
+================================================================
+ -xargs
+================================================================
+-##grep vs find
+ -grep
+================================================================
+make stuff:
+all: chat_client chat_server
+
+COMMON_HEADER = include/chat_message.hpp
+
+chat_client.o: ${COMMON_HEADER} src/chat_client.cpp
+
+chat_client:src/chat_client.o
+	${CXX} -o chat_client src/chat_client.o -lpthread -lncurses
+
+chat_server.o: ${COMMON_HEADER} include/chat_message.hpp src/chat_server.cpp
+
+chat_server:chat_server.o
+	${CXX} -o chat_server chat_server.o -lpthread
+
+clean:
+	-rm -f src/chat_client src/chat_server src/chat_client.o src/chat_server.o
+================================================================

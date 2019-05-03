@@ -25,6 +25,7 @@
 
 #include <cstdlib>
 #include <deque>
+#include <vector>
 #include <iostream>
 #include <list>
 #include <memory>
@@ -34,10 +35,11 @@
 #include "chat_message.hpp"
 
 using boost::asio::ip::tcp;
-//typedef std::map<int,string> chat
-int id = 0;
+
 #define MAX_LENGTH 255
 #define MAX_CHATROOM_ 10
+
+std::vector<std::string> room_list;
 
 /* LIST OF SERVERS; USER WILL ACTUALLY NAME THE ROOM */
 
@@ -52,9 +54,8 @@ class chat_participant
 public:
   virtual ~chat_participant() {}
   virtual void deliver(const chat_message& msg) = 0;
-  char firstname[50];
-  char lastname[50];
   char username[100];
+  int room_num;
   void assign_id () { }
 
 };
@@ -81,6 +82,11 @@ public:
     participants_.erase(participant);
   }
 
+  void deliver(const chat_message& msg, chat_participant_ptr participant){
+    // deliver to a single participant
+    participant->deliver(msg);
+  }
+
   void deliver(const chat_message& msg)
   {
     recent_msgs_.push_back(msg);
@@ -90,8 +96,12 @@ public:
 	/*   there is a reason why this loop is here!            */
 	/* it has to be here because whoever is in this sepcific */
 	/*      chatroom will receive all messages               */
-    for (auto participant: participants_)
-		participant->deliver(msg);
+
+  /* auto: For variables, specifies that the type of the variable that is
+  being declared will be automatically deduced from its initializer.*/
+    for (auto participant: participants_){
+		    participant->deliver(msg);
+    }
   }
 
 private:
@@ -161,7 +171,7 @@ private:
           if (!ec)
           {
             room_.deliver(read_msg_);
-			//std::cout << "here is the instructions to the server" << std::endl;
+			      std::cout << "here is the instructions to the server" << std::endl;
 			//			<<
             do_read_header();
           }
@@ -230,6 +240,7 @@ private:
 
   tcp::acceptor acceptor_;
   chat_room room_;
+  int room_num;
 };
 
 //----------------------------------------------------------------------
@@ -274,21 +285,14 @@ int main(int argc, char* argv[])
 
 	int port_num = 9000;
 
-	for ( int i = port_num; i < (port_num+=10); i++)
+	for ( int i = port_num; i < (port_num+12); i++)
 	{
-
+    tcp::endpoint tempendpoint(tcp::v4(), i);
+    printf("New ports: %d \n",i);
+    servers.emplace_back(io_context, tempendpoint);
 	}
 
-	tcp::endpoint endpoint1(tcp::v4(), 9000);
-	servers.emplace_back(io_context, endpoint1);
-
-	tcp::endpoint endpoint2(tcp::v4(), 9001);
-	servers.emplace_back(io_context, endpoint2);
-
-	tcp::endpoint endpoint3(tcp::v4(), 9002);
-	servers.emplace_back(io_context, endpoint3);
-
-    io_context.run();
+  io_context.run();
 
   }
   catch (std::exception& e)

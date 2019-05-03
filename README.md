@@ -3,32 +3,31 @@
 
 
 # TODO:
-- [x] look at our requirements and evaluate
-  * [x] requirements table too broad
-  * [x] user specific requirements
-  * [x] use cases should be based on actions and what the system does, not things in the system.
-- [x] **project design**
-  * [x] figure out github
-  * [x] learn ncurses
-  * [x] learn asio
-  * [ ] learn readline
-    * [x] tab completion
-  * [x] class diagram w/ methods and attributes
-  * [x] for each class, provide a written description
-  * [x] ""   ""   ""  , list if client, server, or both
-  * [x] update requirements table
 - [ ] code
-  * [ ] start writing the classes from UML Diagram.
-  * [ ] makefile
-  * [ ] echo: do not send back messages to the client sending the messages
+  * [x] start writing the classes from UML Diagram.
+  * [ ] makefile and clean directories
+  * [x] echo: do not send back messages to the client sending the messages NOTE:(will fix with ncurses)
+  * [x] comment code for Friday
+  * [x] finish interface functions
+  * [ ] all of client in header? that way we can use the functions inside chat_gui
+  * [ ] implement saurav code
+    * [ ] turn to ncurses
+  * [ ] figure out receiving and sending info
+  * [ ] connecting the gui::room to chat_server
+  * [ ] 9000 is default, 9001 lobby, 9002-9011 is new rooms.
+  * [ ] for recent_msgs_msgs, deliver msgs using ncurses
   * [ ] ncurses windows with the asio examples
   * [ ] implenting more chat_sessions for chat rooms
-  * [ ] read commands
+  * [x] read commands
+  * [ ] redo UML diagram
+  
+
 - [ ] testing requirements and report
+  * [ ] josh and ryan <------
 - [ ] presentation
 
 
-GIT INSTRUCTIONS:
+# GIT INSTRUCTIONS:
 1. Open Git Bash or whatever terminal your going to use.
 	-if your not using Git Bash make sure you have git installed
 
