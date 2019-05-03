@@ -226,7 +226,7 @@ bool check_command(std::string c){
   char *cp_rom=(char*)malloc(150*sizeof(char));
   if(c[0] == '/'){
     sscanf(c.c_str(),"%s %150[^\n]",cp_command, cp_rom );
-    //printf("command: %s \n rom: %s\n",cp_command,cp_rom );
+    printf("command: %s \n rom: %s\n",cp_command,cp_rom );
     free(cp_command);
     free(cp_rom);
     return TRUE; //if command do not send
