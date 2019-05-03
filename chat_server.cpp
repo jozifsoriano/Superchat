@@ -25,6 +25,7 @@
 
 #include <cstdlib>
 #include <deque>
+#include <vector>
 #include <iostream>
 #include <list>
 #include <memory>
@@ -33,11 +34,12 @@
 #include "asio.hpp"
 #include "chat_message.hpp"
 
-using asio::ip::tcp;
-//typedef std::map<int,string> chat
-int id = 0;
+using boost::asio::ip::tcp;
+
 #define MAX_LENGTH 255
 #define MAX_CHATROOM_ 10
+
+std::vector<std::string> room_list;
 
 /* LIST OF SERVERS; USER WILL ACTUALLY NAME THE ROOM */
 
@@ -52,9 +54,8 @@ class chat_participant
 public:
   virtual ~chat_participant() {}
   virtual void deliver(const chat_message& msg) = 0;
-  char firstname[50];
-  char lastname[50];
   char username[100];
+  int room_num;
   void assign_id () { }
 
 };
@@ -79,6 +80,11 @@ public:
   void leave(chat_participant_ptr participant)
   {
     participants_.erase(participant);
+  }
+
+  void deliver(const chat_message& msg, chat_participant_ptr participant){
+    // deliver to a single participant
+    participant->deliver(msg);
   }
 
   void deliver(const chat_message& msg)
@@ -140,8 +146,8 @@ private:
   void do_read_header()
   {
     auto self(shared_from_this());
-    asio::async_read(socket_,
-        asio::buffer(read_msg_.data(), chat_message::header_length),
+    boost::asio::async_read(socket_,
+        boost::asio::buffer(read_msg_.data(), chat_message::header_length),
         [this, self](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec && read_msg_.decode_header())
@@ -158,14 +164,14 @@ private:
   void do_read_body()
   {
     auto self(shared_from_this());
-    asio::async_read(socket_,
-        asio::buffer(read_msg_.body(), read_msg_.body_length()),
+    boost::asio::async_read(socket_,
+        boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
         [this, self](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
             room_.deliver(read_msg_);
-			//std::cout << "here is the instructions to the server" << std::endl;
+			      std::cout << "here is the instructions to the server" << std::endl;
 			//			<<
             do_read_header();
           }
@@ -179,8 +185,8 @@ private:
   void do_write()
   {
     auto self(shared_from_this());
-    asio::async_write(socket_,
-        asio::buffer(write_msgs_.front().data(),
+    boost::asio::async_write(socket_,
+        boost::asio::buffer(write_msgs_.front().data(),
           write_msgs_.front().length()),
         [this, self](std::error_code ec, std::size_t /*length*/)
         {
@@ -210,7 +216,7 @@ private:
 class chat_server
 {
 public:
-  chat_server(asio::io_context& io_context,
+  chat_server(boost::asio::io_context& io_context,
       const tcp::endpoint& endpoint)
     : acceptor_(io_context, endpoint)
   {
@@ -234,6 +240,7 @@ private:
 
   tcp::acceptor acceptor_;
   chat_room room_;
+  int room_num;
 };
 
 //----------------------------------------------------------------------
@@ -250,7 +257,7 @@ int main(int argc, char* argv[])
       return 1;
     }*/
 
-    asio::io_context io_context;
+    boost::asio::io_context io_context;
 
 	/* container of servers in case of need of more than 1 server */
     std::list<chat_server> servers;
@@ -278,7 +285,7 @@ int main(int argc, char* argv[])
 
 	int port_num = 9000;
 
-	for ( int i = port_num; i < (port_num+10); i++)
+	for ( int i = port_num; i < (port_num+12); i++)
 	{
     tcp::endpoint tempendpoint(tcp::v4(), i);
     printf("New ports: %d \n",i);

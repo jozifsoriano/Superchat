@@ -3,64 +3,81 @@
 
 #include <ncurses.h>
 #include <string>
+/*
+#include <readline/history.h>
+#include <readline/readline.h>
+
+std::string get_rlinput(WINDOW *w, char *name);
+static char *msg_win_str = NULL;
+static unsigned char cinput;
+static bool input_avail = FALSE;
+static bool should_exit = FALSE;
+static void got_command(char *line);
+static void init_readline(char *name);
+static int readline_input_avail(void);
+static int readline_getc();
+static void forward_to_readline(char c);*/
 
 class interface{
-  WINDOW *win;
-  int userID;
-public:
-  void create_room_box();
-  void create_roomMembers_box();
-  void create_text_box();
+  std::string userID;
 protected:
-  int get_user();
-  //vector<chat_r> get_room_list();
-  //void change_room(int room_id);
+  WINDOW *main;
+  WINDOW *input;
+  WINDOW *members;
+  int isize = 3;
+  int rsize;
+  void setup();//j
+  void draw_borders(WINDOW *w);//js
+  void create_main_box();//js
+  void create_members_box();//js
+  void create_input_box();//js
+  void set_rsize();//js
+  void set_userID(std::string name);//js
+  bool check_command();
+public:
+  WINDOW *get_inputw();
+  std::string get_input(WINDOW *w, char *name);//replace with rlncurses
+  std::string get_user();
+  bool quit_flag = TRUE; // when false, quit
 
 };
 
-class login: public interface{
-  int input_ID;
+class login: public interface{//js
+  std::string input_ID;
   std::string input_password;
 private:
-  bool validate_credentials();
-  void create_account();
-  void run_login();
-  void compare_file();
+  bool validate_credentials();//js
+  void create_account();//js
+  bool run_login();//js
 public:
-  login();
-  ~login();
-};
-
-class room: public interface{
-  int port_num;
-public:
-  std::string name;
-private:
-  void add_room();
-  int get_room();
-public:
-  room();
-  void list_users();
-  void display_room_list();
-  void delete_room(std::string n);
-  ~room();
+  login();//js
+  ~login();//js
 };
 
 class menu: public interface{
 public:
-  menu();
-  int join_room();
+  void init_menu(std::string id);//js
+  void join_room();
+  void join_lobby();
   void create_room();
+  std::string get_port();//js
+  bool continue_flag = TRUE;
   ~menu();
-
+protected:
+  void list_users();
+  void display_room_list();
+  void delete_room(std::string n);
+  std::string port_num;
 };
 
 class manager: public interface{
-
+public:
+  manager();
+  ~manager();
 
 };
 
-class command{
+class command: public interface{
   std::string input;
 public:
   command(std::string c);
@@ -70,8 +87,11 @@ private:
   void create_room();
   void display_room_list();
   void exit_client();
+  void spellcheck();
   void broadcast();
   void transfer();
+  void get_uptime();
+  void error();
   ~command();
 };
 
