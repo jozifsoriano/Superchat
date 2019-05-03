@@ -455,14 +455,17 @@ void menu::init_menu(std::string id){
           clear();
           join_lobby();
           flag = FALSE;
+          continue_flag = FALSE;
         }else if(highlight==1){
           clear();
           join_room();
           flag = FALSE;
+          continue_flag = FALSE;
         }else if(highlight==2){
           clear();
           create_room();
           flag = FALSE;
+          continue_flag = FALSE;
         }else if(highlight==3){
           endwin();
           flag = FALSE;

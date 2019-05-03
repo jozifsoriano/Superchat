@@ -34,6 +34,7 @@
 //extern char *msg_win_str;
 
 using boost::asio::ip::tcp;
+char new_line[chat_message::max_body_length+1+25];
 
 typedef std::deque<chat_message> chat_message_queue;
 
@@ -47,11 +48,10 @@ public:
     do_connect(endpoints);
   }
 
-  void init_client(std::string id){
+/* void init_client(std::string id){
     setup();
     set_userID(id);
-
-  }
+  }*/
   void write(const chat_message& msg)
   {
     boost::asio::post(io_context_,
@@ -70,8 +70,7 @@ public:
   {
     boost::asio::post(io_context_, [this]() { socket_.close(); });
   }
-
-  void print_recent_msgs(){
+/*void print_recent_msgs(){
 
   }
 
@@ -81,7 +80,7 @@ public:
 
   void init_room(){
     setup();
-  }
+  }*/
   /*void run_client(){
     std::thread t([&io_service](){ io_service.run(); });
 
@@ -193,6 +192,26 @@ private:
   chat_message_queue write_msgs_;
 };
 
+void add_user_to_msg(char line[],std::string userID){
+  char *uid =&userID[0u];
+  //printf("DEBUG: USER ID %s\n",uid);
+  int i=0, j=0;
+  while(uid[i]!='\0'){
+    new_line[i] = uid[i];
+    //printf("%d %c %c \n", i, new_line[i],uid[i]);
+    i++;
+  }
+  new_line[i] = 58;
+  i++;
+  new_line[i] = 32;
+  i++;
+  while(line[j]!='\0'){
+    new_line[i+j]=line[j];
+    //printf("%d  %d %c %c", i, i+j, new_line[i+j],line[j]);
+    j++;
+  }
+  //printf("DEBUG: NEWLINE: %s\n",new_line);
+}
 
 
 //-------------------------------------------------
@@ -213,6 +232,8 @@ int main(int argc, char* argv[]){
     if(m.quit_flag == FALSE){
       return 0;
     }
+    erase();
+  }
     ///*
     try{
       boost::asio::io_service io_service;
@@ -222,19 +243,23 @@ int main(int argc, char* argv[]){
       chat_client c(io_service, endpoint_iterator);
       std::thread t([&io_service](){ io_service.run(); });
       char line[chat_message::max_body_length + 1];
+
       //std::string sline;
       //c.init_client(l.get_user());
       //char *uid =&c.get_user()[0u];
       while (std::cin.getline(line, chat_message::max_body_length + 1)){
       //while(c.continue_flag){
         chat_message msg;
-        msg.body_length(std::strlen(line));
+        add_user_to_msg(line,l.get_user());
+        //msg.body_length(std::strlen(line));
+        msg.body_length(std::strlen(new_line));
         //sline = c.get_input(c.get_inputw(),uid);
         //sline = get_rlinput(c.get_inputw(),uid);
         //msg.body_length(sline.length());
-        std::memcpy(msg.body(), line, msg.body_length());
+        std::memcpy(msg.body(), new_line, msg.body_length());
         msg.encode_header();
         c.write(msg);
+        memset(new_line, 0, sizeof(new_line));
 
       }
 
@@ -247,7 +272,7 @@ int main(int argc, char* argv[]){
       std::cerr << "Exception: " << e.what() << "\n";
     }//*/
 
-  }
+
 
 
 

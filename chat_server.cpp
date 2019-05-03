@@ -39,7 +39,7 @@ using boost::asio::ip::tcp;
 #define MAX_LENGTH 255
 #define MAX_CHATROOM_ 10
 
-
+std::vector<std::string> room_list;
 
 /* LIST OF SERVERS; USER WILL ACTUALLY NAME THE ROOM */
 
@@ -171,7 +171,7 @@ private:
           if (!ec)
           {
             room_.deliver(read_msg_);
-			//std::cout << "here is the instructions to the server" << std::endl;
+			      std::cout << "here is the instructions to the server" << std::endl;
 			//			<<
             do_read_header();
           }
