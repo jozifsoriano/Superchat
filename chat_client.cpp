@@ -34,7 +34,12 @@
 //extern char *msg_win_str;
 
 using boost::asio::ip::tcp;
+
+//globals
 char new_line[chat_message::max_body_length+1+25];
+std::string nick;
+bool return_to_menu = FALSE;
+
 
 typedef std::deque<chat_message> chat_message_queue;
 
@@ -213,6 +218,26 @@ void add_user_to_msg(char line[],std::string userID){
   //printf("DEBUG: NEWLINE: %s\n",new_line);
 }
 
+std::string input_command;
+std::string rest_of_message;
+
+bool check_command(std::string c){
+  char *cp_command=(char*)malloc(150*sizeof(char));
+  char *cp_rom=(char*)malloc(150*sizeof(char));
+  if(c[0] == '/'){
+    sscanf(c.c_str(),"%s %150[^\n]",cp_command, cp_rom );
+    //printf("command: %s \n rom: %s\n",cp_command,cp_rom );
+    free(cp_command);
+    free(cp_rom);
+    return TRUE; //if command do not send
+  }else{
+    free(cp_command);
+    free(cp_rom);
+    return FALSE; //if not command, send
+  }
+
+
+}
 
 //-------------------------------------------------
 int main(int argc, char* argv[]){
@@ -226,6 +251,9 @@ int main(int argc, char* argv[]){
   if (l.quit_flag == FALSE){
     return 0;
   }
+  nick = l.get_user();
+menu:
+  return_to_menu = FALSE;
   while(running){
     m.init_menu(l.get_user());
     running = m.continue_flag;
@@ -234,23 +262,25 @@ int main(int argc, char* argv[]){
     }
     erase();
   }
-    ///*
-    try{
-      boost::asio::io_service io_service;
+  ///*
+  try{
+    boost::asio::io_service io_service;
 
-      tcp::resolver resolver(io_service);
-      auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.get_port()});
-      chat_client c(io_service, endpoint_iterator);
-      std::thread t([&io_service](){ io_service.run(); });
-      char line[chat_message::max_body_length + 1];
+    tcp::resolver resolver(io_service);
+    auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.get_port()});
+    chat_client c(io_service, endpoint_iterator);
+    std::thread t([&io_service](){ io_service.run(); });
+    char line[chat_message::max_body_length + 1];
 
-      //std::string sline;
-      //c.init_client(l.get_user());
-      //char *uid =&c.get_user()[0u];
-      while (std::cin.getline(line, chat_message::max_body_length + 1)){
-      //while(c.continue_flag){
+    //std::string sline;
+    //c.init_client(l.get_user());
+    //char *uid =&c.get_user()[0u];
+    while (std::cin.getline(line, chat_message::max_body_length + 1)){
+    //while(c.continue_flag){
+      std::string temp(line);
+      if(!check_command(temp)){//false for not command
         chat_message msg;
-        add_user_to_msg(line,l.get_user());
+        add_user_to_msg(line,nick);
         //msg.body_length(std::strlen(line));
         msg.body_length(std::strlen(new_line));
         //sline = c.get_input(c.get_inputw(),uid);
@@ -260,17 +290,18 @@ int main(int argc, char* argv[]){
         msg.encode_header();
         c.write(msg);
         memset(new_line, 0, sizeof(new_line));
-
       }
-
-      c.close();
-      t.join();
-
+      if(return_to_menu==TRUE){
+        goto menu;
+      }
     }
-    catch (std::exception& e)
-    {
-      std::cerr << "Exception: " << e.what() << "\n";
-    }//*/
+
+    c.close();
+    t.join();
+
+  }catch (std::exception& e){
+    std::cerr << "Exception: " << e.what() << "\n";
+  }//*/
 
 
 

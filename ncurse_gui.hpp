@@ -76,23 +76,23 @@ public:
   ~manager();
 
 };
-
-class command: public interface{
-  std::string input;
-public:
-  command(std::string c);
-private:
-  void help();
-  void mute();
-  void create_room();
-  void display_room_list();
-  void exit_client();
-  void spellcheck();
-  void broadcast();
-  void transfer();
-  void get_uptime();
-  void error();
-  ~command();
-};
+/*
+//class command: public interface{
+std::string input;
+std::string line;
+//public:
+bool check_command(std::string c);
+//private:
+void help();
+void mute();
+void create_room();
+void display_room_list();
+void exit_client();
+void spellcheck();
+void broadcast();
+void transfer();
+void get_uptime();
+void error();
+};*/
 
 #endif // NC_GUI.hpp

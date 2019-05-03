@@ -501,6 +501,7 @@ void menu::create_room(){
 std::string menu::get_port(){
   return port_num;
 }
+
 menu::~menu(){
   endwin();
 }
