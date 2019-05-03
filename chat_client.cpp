@@ -39,6 +39,8 @@ using boost::asio::ip::tcp;
 char new_line[chat_message::max_body_length+1+25];
 std::string nick;
 bool return_to_menu = FALSE;
+std::string input_command;
+std::string rest_of_message;
 
 
 typedef std::deque<chat_message> chat_message_queue;
@@ -218,15 +220,32 @@ void add_user_to_msg(char line[],std::string userID){
   //printf("DEBUG: NEWLINE: %s\n",new_line);
 }
 
-std::string input_command;
-std::string rest_of_message;
+void print_commands(){
+  printf("The current commands supported are: \n");
+  printf("2.) /nick <nickname>");
+  printf("1.) /help \t (prints commands and usage)\n");
+  printf("3.) /quit \t (return to menu)\n");
+  printf("4.) /exit \t (exit the program)\n");
+
+}
 
 bool check_command(std::string c){
-  char *cp_command=(char*)malloc(150*sizeof(char));
+  char *cp_command=(char*)malloc(15*sizeof(char));
   char *cp_rom=(char*)malloc(150*sizeof(char));
   if(c[0] == '/'){
     sscanf(c.c_str(),"%s %150[^\n]",cp_command, cp_rom );
-    printf("command: %s \n rom: %s\n",cp_command,cp_rom );
+    //printf("command: %s \n rom: %s\n",cp_command,cp_rom );
+    if(strcmp(cp_command,"/quit")==0){
+      printf("RETURNING \n");
+      return_to_menu=TRUE;
+    }else if(strcmp(cp_command,"/exit")==0){
+      exit(0);
+    }else if(strcmp(cp_command,"/help")==0){
+      print_commands();
+    }else{
+      printf("%s !!NOT A RECOGNIZED COMMAND!!\n", cp_command);
+      printf("Type '/help' to get command list.\n");
+    }
     free(cp_command);
     free(cp_rom);
     return TRUE; //if command do not send
@@ -235,7 +254,6 @@ bool check_command(std::string c){
     free(cp_rom);
     return FALSE; //if not command, send
   }
-
 
 }
 
@@ -254,6 +272,7 @@ int main(int argc, char* argv[]){
   nick = l.get_user();
 menu:
   return_to_menu = FALSE;
+  running = TRUE;
   while(running){
     m.init_menu(l.get_user());
     running = m.continue_flag;
@@ -262,6 +281,7 @@ menu:
     }
     erase();
   }
+  system("clear");
   ///*
   try{
     boost::asio::io_service io_service;
@@ -278,7 +298,8 @@ menu:
     while (std::cin.getline(line, chat_message::max_body_length + 1)){
     //while(c.continue_flag){
       std::string temp(line);
-      if(!check_command(temp)){//false for not command
+      bool can_send = check_command(temp);
+      if(!can_send){//false for not command
         chat_message msg;
         add_user_to_msg(line,nick);
         //msg.body_length(std::strlen(line));
@@ -292,6 +313,8 @@ menu:
         memset(new_line, 0, sizeof(new_line));
       }
       if(return_to_menu==TRUE){
+        c.close();
+        t.join();
         goto menu;
       }
     }
