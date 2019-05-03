@@ -240,7 +240,7 @@ private:
 
   tcp::acceptor acceptor_;
   chat_room room_;
-  int room_num;
+  //int room_num;
 };
 
 //----------------------------------------------------------------------
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
 
 	int port_num = 9000;
 
-	for ( int i = port_num; i < (port_num+12); i++)
+	for ( int i = port_num; i < (port_num+10); i++)
 	{
     tcp::endpoint tempendpoint(tcp::v4(), i);
     printf("New ports: %d \n",i);
