@@ -59,23 +59,23 @@ public:
   void init_menu(std::string id);//js
   void join_room();
   void join_lobby();
-  void create_room();
+  //void create_room();
   std::string get_port();//js
   bool continue_flag = TRUE;
   ~menu();
 protected:
-  void list_users();
-  void display_room_list();
-  void delete_room(std::string n);
+  //void list_users();
+  //void display_room_list();
+  //void delete_room(std::string n);
   std::string port_num;
 };
 
-class manager: public interface{
+/*class manager: public interface{
 public:
   manager();
   ~manager();
 
-};
+};*/
 /*
 //class command: public interface{
 std::string input;

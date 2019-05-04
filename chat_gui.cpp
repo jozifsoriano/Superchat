@@ -329,6 +329,10 @@ login::login(){
 
 bool login::run_login(){
   setup();
+  mvwprintw(members,1,2,"To login as guest, ");
+  mvwprintw(members,2,2,"leave both fields blank:");
+  mvwprintw(members,3,2,"Hit enter twice. ");
+  wrefresh(members);
   char id_str[] = "ID";
   char pw_str[] = "Password";
   //user input
@@ -457,17 +461,14 @@ void menu::init_menu(std::string id){
           flag = FALSE;
           continue_flag = FALSE;
         }else if(highlight==1){
-          clear();
           join_room();
           //printf("seg fault HERE? ");
           flag = FALSE;
           continue_flag = FALSE;
           //printf("HERE? ");
         }else if(highlight==2){
-          clear();
-          create_room();
-          flag = FALSE;
-          continue_flag = FALSE;
+          //create_room();
+          mvwprintw(members,1,2,"Feature not implemented. ");
         }else if(highlight==3){
           endwin();
           flag = FALSE;
@@ -489,10 +490,11 @@ void menu::join_lobby(){
 
 void menu::join_room()
 {
-  setup();
   int choice;
   int highlight = 0;
   bool flag = TRUE;
+  keypad(main, FALSE);
+  keypad(members,TRUE);
 //  char newChatrooms[20];
   std::string options[9] = {"9001","9002","9003","9004","9005","9006","9007","9008","9009"};
   //int chatroomcounter=3;
@@ -504,12 +506,12 @@ void menu::join_room()
   {
   for(int i=0; i<9; i++){
     if(i==highlight){
-      wattron(main, A_REVERSE);
+      wattron(members, A_REVERSE);
     }
-    mvwprintw(main,(i*2)+5,10, options[i].c_str());
-    wattroff(main, A_REVERSE);
+    mvwprintw(members,(i*2)+5,3, options[i].c_str());
+    wattroff(members, A_REVERSE);
   }
-    choice = wgetch(main);
+    choice = wgetch(members);
     switch(choice){
       case KEY_UP:
         highlight--;
@@ -526,7 +528,7 @@ void menu::join_room()
       case 10:
         //std::cout << highlight;
         //port_num = options[highlight];
-        delwin(main);
+        delwin(members);
         endwin();
         //printf("1 ) seg fault HERE? \n");
         //printf("DEBUG %s\n",options[highlight].c_str());
@@ -542,10 +544,6 @@ void menu::join_room()
   }
 
 
-void menu::create_room(){
-  setup();
-
-}
 
 std::string menu::get_port(){
   return port_num;

@@ -52,6 +52,7 @@ bool check_mute(char *user);
 void add_mute(char *user);
 void unmute(char *user);
 void self_mute(char *cp_user);
+void sec_to_min(int s, bool check);
 
 int min(int x, int y, int z){
 	int a = (int)fmin(x,y); //x+y
@@ -354,7 +355,7 @@ void add_user_to_msg(char line[],std::string userID){
   //printf("DEBUG: NEWLINE: %s\n",new_line);
 }
 
-void print_commands(){
+void print_commands(){ //  /help
   printf("The current commands supported are: \n");
   printf("1.) /nick <nickname> \t (set your display name) \n");
   printf("2.) /mute <username> \t (mutes the user with display name user <username>)\n");
@@ -369,7 +370,7 @@ void print_commands(){
 }
 
 
-bool check_command(std::string c){
+bool check_command(std::string c){ //checks if input line is a command (begins with '/')
   char *cp_command=(char*)malloc(15*sizeof(char));
   char *cp_rom=(char*)malloc(150*sizeof(char));
   if(c[0] == '/'){
@@ -442,7 +443,13 @@ bool check_command(std::string c){
       spellcheck(word);
     }else if(strcmp(cp_command,"/uptime")==0){
       double duration = difftime( time(0), start);
-      printf("Current uptime is %.0f(s) \n", duration);
+      bool min_check = FALSE;
+      char min[4];
+      sscanf(cp_rom,"%s",min);
+      if(strcmp(min,"min")==0){
+        min_check = TRUE;
+      }
+      sec_to_min((int)duration,min_check);
     }else{
       printf("%s !!NOT A RECOGNIZED COMMAND!!\n", cp_command);
       printf("Type '/help' to get command list.\n");
@@ -504,6 +511,19 @@ void self_mute(std::string nick){
   i++;
   add_mute(new_user);
 }//js
+
+void sec_to_min(int s, bool check){
+  if(check){
+    int ss, mm;
+    ss = s%60;
+    mm = ss/60;
+    printf("Current uptime is %d minutes and %d seconds. \n", mm, ss);
+  }else{
+    printf("Current uptime is %d(s) \n", s);
+    return;
+  }
+}
+
 //-------------------------------------------------
 int main(int argc, char* argv[]){
   //main variables
