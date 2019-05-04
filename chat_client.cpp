@@ -23,7 +23,8 @@
 #include <deque>
 #include <iostream>
 #include <thread>
-
+#include <ctime>
+#include <math.h>
 #include "asio.hpp"
 #include "chat_message.hpp"
 #include <ncurses.h>
@@ -44,13 +45,120 @@ std::string port_num;
 std::string input_command;
 std::string rest_of_message;
 std::vector<std::string> blocked_users;
+time_t start;
 
-typedef std::deque<chat_message> chat_message_queue;
-
+//func defs
 bool check_mute(char *user);
 void add_mute(char *user);
 void unmute(char *user);
 void self_mute(char *cp_user);
+
+int min(int x, int y, int z){
+	int a = (int)fmin(x,y); //x+y
+	int b = (int)fmin(a,z); //x+y+z
+	return b;
+}
+
+int edit_distance(char * first_string, char * second_string, int print_table){
+	//get length of strings
+
+	int fslen = strlen(first_string);
+	int sslen = strlen(second_string);
+
+	int table[fslen+1][sslen+1];
+	//print table
+	if(print_table==1){
+		printf("%3c|%3c|",' ', ' ');
+		for(int x = 0; x<sslen; x++){
+			printf("%3c|",second_string[x]);
+		}
+		printf("\n");
+		for(int xx = 0;xx<sslen+1;xx++){
+			printf("------");
+		}
+		printf("\n");
+		for(int i = 0; i<=fslen; i++){
+			if(i>0){
+				printf("%3c|",first_string[i-1]);
+			}else{
+				printf("%3c|",' ');
+			}
+			for(int j = 0; j<=sslen; j++){
+				if(i==0){
+					table[i][j] = j;
+				}else if(j==0){
+					table[i][j]= i;
+				}else if(first_string[i-1] == second_string[j-1]){
+					table[i][j]=table[i-1][j-1];
+				}else{
+					table[i][j] = 1+min(table[i][j-1], table[i-1][j], table[i-1][j-1]);
+				}
+				printf("%3d|",table[i][j]);
+			}
+			printf("\n");
+			for(int l = 0;l<sslen+1;l++){
+				printf("------");
+			}
+			printf("\n");
+		}
+	}else{
+		for(int i = 0; i<=fslen; i++){
+			for(int j = 0; j<=sslen+1; j++){
+				if(i==0){
+					table[i][j] = j;
+				}else if(j==0){
+					table[i][j]= i;
+				}else if(first_string[i-1] == second_string[j-1]){
+					table[i][j]=table[i-1][j-1];
+				}else{
+					table[i][j] = 1+min(table[i][j-1], table[i-1][j], table[i-1][j-1]);
+				}
+			}
+		}
+	}
+	//printf("***ED CALL: %d***\n",table[fslen][sslen]);
+	return table[fslen][sslen];  // replace this line with your code
+}
+
+void spellcheck(char *teststring){
+	FILE *dict;
+	char dictstring[100], closestword[100];
+	int  temp_ed;
+
+	int  min_ed=100;
+	dict = fopen("words.txt","r");
+	//printf("\nWORD TO CHECK: %s \n----------------------\n",teststring);
+	if(!dict){
+		perror("No such dictionary file.");
+	}
+	while(fgets(dictstring,sizeof(dictstring),dict)){
+		int temp_ed;
+		//printf("MIN_ED: %d\n",min_ed);
+		temp_ed = edit_distance(dictstring,teststring,0);
+		//printf("CURRENT: %s\t%s\t***%d***\n",teststring,dictstring,temp_ed);
+		if(temp_ed <= min_ed){
+			//printf("CLOSEST_WORD: %s\n",closestword);
+			min_ed = temp_ed;
+			//printf("MIN_ED: %d\n",min_ed);
+		}
+	}
+	printf("MINIMUM EDIT DISTANCE: %d\n----------------------\n",min_ed);
+	fclose(dict);
+	dict = fopen("words.txt","r");
+	while(fgets(dictstring,sizeof(dictstring),dict)){
+		temp_ed = edit_distance(dictstring,teststring,0);
+		if(min_ed == temp_ed){
+			strcpy(closestword, dictstring);
+			printf("Did you mean: %s \n",closestword);
+		}
+	}
+	printf("==================================\n\n\n");
+	fclose(dict);
+
+}
+
+
+typedef std::deque<chat_message> chat_message_queue;
 
 class chat_client: public menu{
 public:
@@ -251,11 +359,15 @@ void print_commands(){
   printf("1.) /nick <nickname> \t (set your display name) \n");
   printf("2.) /mute <username> \t (mutes the user with display name user <username>)\n");
   printf("3.) /unmute <username> \t (unmutes the user with display name user <username>)\n");
-  printf("4.) /help \t (prints commands and usage)\n");
-  printf("5.) /quit \t (return to menu)\n");
-  printf("6.) /exit \t (exit the program)\n");
+  printf("4.) /change <port_num> \t (changes current chatroom)\n");
+  printf("5.) /spellcheck <word> \t (compares word to file, recommend similar words \n)");
+  printf("6.) /uptime \t (checks how long a user has been in a room)");
+  printf("7.) /help \t (prints commands and usage)\n");
+  printf("8.) /quit \t (return to menu)\n");
+  printf("9.) /exit \t (exit the program)\n");
 
 }
+
 
 bool check_command(std::string c){
   char *cp_command=(char*)malloc(15*sizeof(char));
@@ -305,12 +417,32 @@ bool check_command(std::string c){
       unmute(new_user);
     }else if(strcmp(cp_command,"/change")==0){
       char port[15];
+      bool cant_change = FALSE;
       sscanf(cp_rom,"%s",port);
-      printf("DEBUG: port %s \n",port);
-      change_room=TRUE;
-      std::string temp(port);
-      port_num = temp;
+      for(int i = 0; i < 11; i++){
+        std::string options[10] = {"9000","9001","9002","9003","9004","9005","9006","9007","9008","9009"};
+        if(strcmp(options[i].c_str(),cp_rom)==0){
+          cant_change=TRUE;
+          std::string temp(port);
+          port_num = temp;
+          break;
+        }
+      }
+      if(cant_change==FALSE){
+        printf("!!Error!! Cannot change to room %s. \n", cp_rom);
+      }else{
+        std::cout << "You are now in room " << port_num << std::endl;
+        change_room = TRUE;
+      }
+      //printf("DEBUG: port %s \n",port);
 
+    }else if(strcmp(cp_command,"/spellcheck")==0){
+      char word[150];
+      sscanf(cp_rom,"%s",word);
+      spellcheck(word);
+    }else if(strcmp(cp_command,"/uptime")==0){
+      double duration = difftime( time(0), start);
+      printf("Current uptime is %.0f(s) \n", duration);
     }else{
       printf("%s !!NOT A RECOGNIZED COMMAND!!\n", cp_command);
       printf("Type '/help' to get command list.\n");
@@ -336,7 +468,7 @@ void add_mute(char *user){
   }
   blocked_users.push_back(temp);
   printf("%s is now blocked.\n", user);
-}
+}//js
 
 
 bool check_mute(char *user){
@@ -348,7 +480,7 @@ bool check_mute(char *user){
     }
   }
   return FALSE;
-}
+}//js
 
 void unmute(char *user){
   std::string temp(user);
@@ -359,7 +491,7 @@ void unmute(char *user){
       printf("%s is now unblocked.\n", user);
     }
   }
-}
+}//js
 
 void self_mute(std::string nick){
   char new_user[16];
@@ -371,7 +503,7 @@ void self_mute(std::string nick){
   new_user[i] = 58;//:
   i++;
   add_mute(new_user);
-}
+}//js
 //-------------------------------------------------
 int main(int argc, char* argv[]){
   //main variables
@@ -404,8 +536,8 @@ menu:
   system("clear");
   while(1){
     //printf("DEBUG START OF BIG LOOP \n");
+    start = time(0);
     if(change_room == TRUE){
-      std::cout << "You are now in room " << port_num << std::endl;
       change_room = FALSE;
     }else{
       port_num = m.get_port();
@@ -417,9 +549,11 @@ menu:
       tcp::resolver resolver(io_service);
       auto endpoint_iterator = resolver.resolve({LOCAL_HOST, port_num});
       chat_client c(io_service, endpoint_iterator);
+
+
       std::thread t([&io_service](){ io_service.run(); });
       char line[chat_message::max_body_length + 1];
-      printf("You are in room: %s",port_num.c_str());
+      printf("You are in room: %s \n",port_num.c_str());
 
       //std::string sline;
       //c.init_client(l.get_user());
@@ -453,9 +587,11 @@ menu:
           goto menu;
         }
       }
+      if(change_room==FALSE){
+        c.close();
+        t.join();
+      }
 
-      c.close();
-      t.join();
 
     }catch (std::exception& e){
       std::cerr << "Exception: " << e.what() << "\n";
@@ -463,216 +599,5 @@ menu:
 
   }
 
-
-
-
-  /*
-  try
-  {
-    Mymenu Mymenu;
-
-    boost::asio::io_service io_service;
-    std::string port_num = "9000";
-  	std::string LOCAL_HOST = "127.0.0.1";
-    tcp::resolver resolver(io_service);
-    auto endpoint_iterator = resolver.resolve(LOCAL_HOST, port_num);
-    chat_client c(io_service, endpoint_iterator);
-
-    std::thread t([&io_service](){ io_service.run(); });
-
-    char line[chat_message::max_body_length + 1];
-    while (std::cin.getline(line, chat_message::max_body_length + 1))
-    {
-      chat_message msg;
-      msg.body_length(std::strlen(line));
-      std::memcpy(msg.body(), line, msg.body_length());
-      msg.encode_header();
-      c.write(msg);
-    }
-
-    c.close();
-    t.join();
-
-
-    boost::boost::asio::io_context io_context;
-
-	       InternetProtocol::endpoint endpoint_type
-
-		endpoint object; type defined in "basic_resolver.hpp"
-
-
-
-
-		the resolver object has been created
-
-		so the resolver object should reach out to function inside
-			the resolver class to the "resolve" function
-
-	"resolve()"
-* This function is used to resolve a query into a list of endpoint entries.
-   *
-   * @param q A query object that determines what endpoints will be returned.
-   *
-   * @returns A range object representing the list of endpoint entries. A
-   * successful call to this function is guaranteed to return a non-empty
-   * range.
-   *
-   * @throws boost::system::system_error Thrown on failure.
-
-  results_type resolve(const query& q)
-  {
-    boost::system::error_code ec;
-    results_type r = this->get_service().resolve(
-        this->get_implementation(), q, ec);
-    boost::boost::asio::detail::throw_error(ec, "resolve");
-    return r;
-  }
-
-results_type resolve(const query& q, boost::system::error_code& ec)
-  {
-    return this->get_service().resolve(this->get_implementation(), q, ec);
-  }
-
-results_type resolve(BOOST_boost::asio_STRING_VIEW_PARAM host,
-      BOOST_boost::asio_STRING_VIEW_PARAM service)
-  {
-    return resolve(host, service, resolver_base::flags());
-  }
-
-
-
-	 we will make this starting port number
-	std::string user_chatroom = "9000";
-  std::string user_created_room = "9000";
-	std::string LOCAL_HOST = "127.0.0.1";
-
-
-	tcp::resolver resolver(io_context);
-
-
-		WHEN THE PROGRAM NEEDS TO RUN A NEW SECTION OF THIS CODE (i.e. USER CREATES A NEW CHATROOM)
-		REMEMBER THE RESOLVE FUNCTION TAKES 2 STRING LITERALS AS ARGUMENTS; EXPLANATION FOR
-		RESOLVE() IS STATED ABOVE
-
-
-
-
-    ./chat_client 127.0.0.1 9000
-    Hello
-    Hello
-
-
-
-	 WE MIGHT BE ABLE TO DISCARD THE AUTO KEYWORD HERE TO POSSIBLY
-	 DO SOME SORT OF SMART POINTER WORK HERE AND STORE EACH THREAD
-	 AND CHAT_CLIENT OBJECT IN SOME SORT OF CONTAINER AND PULL
-	 THEM OUT ONLY WHEN NEEDED BY USER
-
-    auto endpoints = resolver.resolve(LOCAL_HOST, port_num);
-    chat_client c(io_context, endpoints);
-    std::thread t([&io_context](){ io_context.run(); });
-    char line[chat_message::max_body_length + 1];
-
-
-
-		Objectives of Friday:
-
-			=> Get a super basic program up and running.
-
-			=> this includes something to the effect of the code below
-
-			=> these 3 options should be focused on first
-
-			=>
-
-    char compare_string[100];
-  std::cout << "WELCOME TO SUPERCHAT!\n";
-    //char input[50];
-    int user_choice; // will be a number between 1-3
-
-    int quit_loop = 0;
-    std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
-    while ( !quit_loop )
-    {
-      Mymenu.print_menu();
-      while ( user_choice != 4)
-      {
-        std::cout << "\n\n<sUpErChAt> ";
-        std::cin >> user_choice;
-        if (user_choice==1)//Enter Lobby
-        {
-          user_created_room = "9000";
-          std::cout<<"****WELCOME TO LOBBY****";
-        }
-        if(user_choice==2)//enter chatroom
-        {
-          //show available chatrooms
-          int room_available = Mymenu.enter_rooms(user_created_room);//if enter chatroom send 1;if create chatroom send 0;
-          //if 1 check if matches avaiable chatrooms and print available chatrooms;
-          while(room_available==0)
-          {
-          std::cout<<"No such chatroom exist";
-          room_available = Mymenu.enter_rooms(user_created_room);
-          }
-          if(room_available>0)
-          {
-          std::cout<<"Room"<<user_created_room;
-          }
-          }
-        if (user_choice==3)//create chatroom
-        {
-          int room_available =Mymenu.create_rooms(user_created_room );
-          if (room_available==1)//successful
-          {
-            std::cout<<"Chatroom"<<user_created_room<<"created\n";
-          }
-        while(room_available!=1)
-        {   std::cout<<"Chatroom Already exist:\n";
-            std::cout<<"Enter a chatroom number again:\n";
-            std::cin>>user_created_room;
-            room_available = Mymenu.create_rooms(user_created_room );
-          }
-        }
-          user_chatroom=user_created_room;
-          auto endpoints = resolver.resolve(LOCAL_HOST, user_chatroom);
-          chat_client c(io_context, endpoints);
-          std::thread t([&io_context](){ io_context.run(); });
-          // "line" user input BEFORE it is sent to other user
-          char line[chat_message::max_body_length + 1];
-          while (std::cin.getline(line, chat_message::max_body_length + 1))
-    	    {
-    			    chat_message msg;
-    	      	msg.body_length(std::strlen(line));
-    	      	std::memcpy(msg.body(), line, msg.body_length());
-
-              std::strcpy(compare_string, line);
-    	      	msg.encode_header();
-    			//msg.message_to_server();
-              if ( strcmp(compare_string,"/exit")==0)
-              {
-                break;
-              }
-    			c.write(msg);
-          //std::string compare_string = c.write(msg);
-    	    }
-
-          c.close();
-          // waits for thread to finish
-          t.join();
-          // ************************* //
-        }
-        continue;
-      }
-
-      quit_loop = 0;
-
-    }
-
-
-  catch (std::exception& e)
-    {
-      std::cerr << "Exception: " << e.what() << "\n";
-    }
-  */
   return 0;
 }

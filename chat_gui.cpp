@@ -459,8 +459,10 @@ void menu::init_menu(std::string id){
         }else if(highlight==1){
           clear();
           join_room();
+          //printf("seg fault HERE? ");
           flag = FALSE;
           continue_flag = FALSE;
+          //printf("HERE? ");
         }else if(highlight==2){
           clear();
           create_room();
@@ -482,16 +484,63 @@ void menu::init_menu(std::string id){
 }
 
 void menu::join_lobby(){
-  port_num = "9001";
+  port_num = "9000";
 }
 
-void menu::join_room(){
+void menu::join_room()
+{
   setup();
-  char jr[] = "Enter room num: ";
-  port_num = get_input(input,jr);
-  //port_num = get_rlinput(input,jr);
+  int choice;
+  int highlight = 0;
+  bool flag = TRUE;
+//  char newChatrooms[20];
+  std::string options[9] = {"9001","9002","9003","9004","9005","9006","9007","9008","9009"};
+  //int chatroomcounter=3;
+  //newChatrooms[3]="9003";
+  //newChatrooms[4]="9004";
+  //newChatrooms[5]="9005";
+  //newChatrooms[6]="9006";
+  while(flag== TRUE)
+  {
+  for(int i=0; i<9; i++){
+    if(i==highlight){
+      wattron(main, A_REVERSE);
+    }
+    mvwprintw(main,(i*2)+5,10, options[i].c_str());
+    wattroff(main, A_REVERSE);
+  }
+    choice = wgetch(main);
+    switch(choice){
+      case KEY_UP:
+        highlight--;
+        if(highlight==-1){
+          highlight=0;
+        }
+        break;
+      case KEY_DOWN:
+        highlight++;
+        if(highlight==9){
+          highlight=8;
+        }
+        break;
+      case 10:
+        //std::cout << highlight;
+        //port_num = options[highlight];
+        delwin(main);
+        endwin();
+        //printf("1 ) seg fault HERE? \n");
+        //printf("DEBUG %s\n",options[highlight].c_str());
+        //printf("2 ) seg fault HERE? ");
+        port_num = options[highlight];
+        flag = FALSE;
+        break;
+    }
+    if(choice==27){
+      break;
+    }
+  }
+  }
 
-}
 
 void menu::create_room(){
   setup();
