@@ -18,7 +18,9 @@
 - README.md
 
 #Compilation Instructions:
+
 0. Fix makefile to work with your asio directory.
+
 1. Initial make
 ```
 make
