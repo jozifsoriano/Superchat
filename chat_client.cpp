@@ -39,6 +39,8 @@ using boost::asio::ip::tcp;
 char new_line[chat_message::max_body_length+1+25];
 std::string nick;
 bool return_to_menu = FALSE;
+bool change_room = FALSE;
+std::string port_num;
 std::string input_command;
 std::string rest_of_message;
 std::vector<std::string> blocked_users;
@@ -301,6 +303,14 @@ bool check_command(std::string c){
       new_user[i] = 58;//:
       i++;
       unmute(new_user);
+    }else if(strcmp(cp_command,"/change")==0){
+      char port[15];
+      sscanf(cp_rom,"%s",port);
+      printf("DEBUG: port %s \n",port);
+      change_room=TRUE;
+      std::string temp(port);
+      port_num = temp;
+
     }else{
       printf("%s !!NOT A RECOGNIZED COMMAND!!\n", cp_command);
       printf("Type '/help' to get command list.\n");
@@ -325,6 +335,7 @@ void add_mute(char *user){
     }
   }
   blocked_users.push_back(temp);
+  printf("%s is now blocked.\n", user);
 }
 
 
@@ -345,6 +356,7 @@ void unmute(char *user){
     if(temp.compare(blocked_users.at(i))==0){
       //std::cout << "UNMUTE: " << temp << std::endl;
       blocked_users.erase(blocked_users.begin()+i);//blocked_users
+      printf("%s is now unblocked.\n", user);
     }
   }
 }
@@ -390,50 +402,66 @@ menu:
     erase();
   }
   system("clear");
-  ///*
-  try{
-    boost::asio::io_service io_service;
-
-    tcp::resolver resolver(io_service);
-    auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.get_port()});
-    chat_client c(io_service, endpoint_iterator);
-    std::thread t([&io_service](){ io_service.run(); });
-    char line[chat_message::max_body_length + 1];
-
-    //std::string sline;
-    //c.init_client(l.get_user());
-    //char *uid =&c.get_user()[0u];
-    while (std::cin.getline(line, chat_message::max_body_length + 1)){
-    //while(c.continue_flag){
-      std::string temp(line);
-      bool can_send = check_command(temp);
-      if(!can_send){//false for not command
-        chat_message msg;
-        add_user_to_msg(line,nick);
-        //msg.body_length(std::strlen(line));
-        msg.body_length(std::strlen(new_line));
-        //sline = c.get_input(c.get_inputw(),uid);
-        //sline = get_rlinput(c.get_inputw(),uid);
-        //msg.body_length(sline.length());
-        std::memcpy(msg.body(), new_line, msg.body_length());
-        msg.encode_header();
-        c.write(msg);
-        memset(new_line, 0, sizeof(new_line));
-      }
-      if(return_to_menu==TRUE){
-        c.close();
-        t.join();
-        goto menu;
-      }
+  while(1){
+    //printf("DEBUG START OF BIG LOOP \n");
+    if(change_room == TRUE){
+      std::cout << "You are now in room " << port_num << std::endl;
+      change_room = FALSE;
+    }else{
+      port_num = m.get_port();
     }
+    ///*
+    try{
+      boost::asio::io_service io_service;
 
-    c.close();
-    t.join();
+      tcp::resolver resolver(io_service);
+      auto endpoint_iterator = resolver.resolve({LOCAL_HOST, port_num});
+      chat_client c(io_service, endpoint_iterator);
+      std::thread t([&io_service](){ io_service.run(); });
+      char line[chat_message::max_body_length + 1];
+      printf("You are in room: %s",port_num.c_str());
 
-  }catch (std::exception& e){
-    std::cerr << "Exception: " << e.what() << "\n";
-  }//*/
+      //std::string sline;
+      //c.init_client(l.get_user());
+      //char *uid =&c.get_user()[0u];
+      while (std::cin.getline(line, chat_message::max_body_length + 1)){
+      //while(c.continue_flag){
+        std::string temp(line);
+        bool can_send = check_command(temp);
+        if(!can_send){//false for not command
+          chat_message msg;
+          add_user_to_msg(line,nick);
+          //msg.body_length(std::strlen(line));
+          msg.body_length(std::strlen(new_line));
+          //sline = c.get_input(c.get_inputw(),uid);
+          //sline = get_rlinput(c.get_inputw(),uid);
+          //msg.body_length(sline.length());
+          std::memcpy(msg.body(), new_line, msg.body_length());
+          msg.encode_header();
+          c.write(msg);
+          memset(new_line, 0, sizeof(new_line));
+        }
+        if(change_room==TRUE){
+          c.close();
+          t.join();
+          //printf("CHANGING ROOM \n");
+          break;
+        }
+        if(return_to_menu==TRUE){
+          c.close();
+          t.join();
+          goto menu;
+        }
+      }
 
+      c.close();
+      t.join();
+
+    }catch (std::exception& e){
+      std::cerr << "Exception: " << e.what() << "\n";
+    }//*/
+
+  }
 
 
 
