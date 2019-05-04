@@ -17,7 +17,7 @@
 - words.txt
 - README.md
 
-#Compilation Instructions:
+# Compilation Instructions:
 
 0. Fix makefile to work with your asio directory.
 
