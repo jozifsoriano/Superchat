@@ -34,7 +34,7 @@
 #include "asio.hpp"
 #include "chat_message.hpp"
 
-using boost::asio::ip::tcp;
+using asio::ip::tcp;
 
 #define MAX_LENGTH 255
 #define MAX_CHATROOM_ 10
@@ -144,8 +144,8 @@ private:
   void do_read_header()
   {
     auto self(shared_from_this());
-    boost::asio::async_read(socket_,
-        boost::asio::buffer(read_msg_.data(), chat_message::header_length),
+    asio::async_read(socket_,
+        asio::buffer(read_msg_.data(), chat_message::header_length),
         [this, self](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec && read_msg_.decode_header())
@@ -162,8 +162,8 @@ private:
   void do_read_body()
   {
     auto self(shared_from_this());
-    boost::asio::async_read(socket_,
-        boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
+    asio::async_read(socket_,
+        asio::buffer(read_msg_.body(), read_msg_.body_length()),
         [this, self](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
@@ -183,8 +183,8 @@ private:
   void do_write()
   {
     auto self(shared_from_this());
-    boost::asio::async_write(socket_,
-        boost::asio::buffer(write_msgs_.front().data(),
+    asio::async_write(socket_,
+        asio::buffer(write_msgs_.front().data(),
           write_msgs_.front().length()),
         [this, self](std::error_code ec, std::size_t /*length*/)
         {
@@ -214,7 +214,7 @@ private:
 class chat_server
 {
 public:
-  chat_server(boost::asio::io_context& io_context,
+  chat_server(asio::io_context& io_context,
       const tcp::endpoint& endpoint)
     : acceptor_(io_context, endpoint)
   {
@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
       return 1;
     }*/
 
-    boost::asio::io_context io_context;
+    asio::io_context io_context;
 
 	/* container of servers in case of need of more than 1 server */
     std::list<chat_server> servers;

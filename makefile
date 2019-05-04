@@ -26,14 +26,5 @@ runs:
 runc:
 	./chat_client
 
-directories:
-	-mkdir bin
-	-mkdir src
-	-mkdir res
-	-mkdir include
-	-mkdir obj
-
-
 clean:
-	-rm -f chat_client chat_server chat_client.o chat_server.o a.out chat_gui.o ./zexample/a.out
-	-rm -rf bin src res include obj
+	-rm -f chat_client chat_server chat_client.o chat_server.o chat_gui.o 
