@@ -7,45 +7,37 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-/*
 #include <string.h>
-#include <cstring>
+#include <vector>
+#include<cstring>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
 #include <thread>
+#include <fstream>
 #include "asio.hpp"
 #include <ncurses.h>
 #include "chat_message.hpp"
-#include "ncurse_gui.hpp"
-*/
-#include <cstdlib>
-#include <deque>
-#include <iostream>
-#include <thread>
+#include "login.hpp"
+#include "menu_chat.hpp"
+#include "chat_gui.hpp"
 
-#include "asio.hpp"
-#include "chat_message.hpp"
-#include <ncurses.h>
-#include "ncurse_gui.hpp"
-//#include <readline/readline.h>
-//#include <readline/history.h>
 
-//extern char *msg_win_str;
+char LOCAL_HOST[10] = "127.0.0.1";
+char*a = LOCAL_HOST;
+int createroom=0;
+int chatroomcounter=0;
+std::string user_created_room;
+std::string user_chatroom ;
+
+
 
 using boost::asio::ip::tcp;
 
-//globals
-char new_line[chat_message::max_body_length+1+25];
-std::string nick;
-bool return_to_menu = FALSE;
-std::string input_command;
-std::string rest_of_message;
-
-
 typedef std::deque<chat_message> chat_message_queue;
 
-class chat_client: public menu{
+class chat_client
+{
 public:
   chat_client(boost::asio::io_context& io_context,
       const tcp::resolver::results_type& endpoints)
@@ -55,10 +47,6 @@ public:
     do_connect(endpoints);
   }
 
-/* void init_client(std::string id){
-    setup();
-    set_userID(id);
-  }*/
   void write(const chat_message& msg)
   {
     boost::asio::post(io_context_,
@@ -77,38 +65,7 @@ public:
   {
     boost::asio::post(io_context_, [this]() { socket_.close(); });
   }
-/*void print_recent_msgs(){
 
-  }
-
-  void print_users(){
-
-  }
-
-  void init_room(){
-    setup();
-  }*/
-  /*void run_client(){
-    std::thread t([&io_service](){ io_service.run(); });
-
-    char line[chat_message::max_body_length + 1];
-
-    //while (std::cin.getline(line, chat_message::max_body_length + 1)){
-    while(c.continue_flag){
-      chat_message msg;
-      msg.body_length(std::strlen(line));
-      std::string sline;
-      sline = c.get_input();
-      std::memcpy(msg.body(), line, msg.body_length());
-      msg.encode_header();
-      c.write(msg);
-
-    }
-
-    c.close();
-    t.join();
-  }*/
-  std::string name;
 private:
   void do_connect(const tcp::resolver::results_type& endpoints)
   {
@@ -126,7 +83,7 @@ private:
   {
     boost::asio::async_read(socket_,
         boost::asio::buffer(read_msg_.data(), chat_message::header_length),
-        [this](std::error_code ec, std::size_t length)
+        [this](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec && read_msg_.decode_header())
           {
@@ -147,18 +104,6 @@ private:
         {
           if (!ec)
           {
-            // Want to make a very clean transition between
-            // the data coming in and the string handed to ncurses.
-            // More complicated than it needs to be, but a high
-            // assurance that no extra characters get displayed
-            char *outline = (char*) malloc(read_msg_.body_length() + 1);
-            memset(outline,'\0',read_msg_.body_length() + 1);
-            memcpy(outline,read_msg_.body(),read_msg_.body_length());
-            //mvwprintw(main,1,1,outline);
-            //wrefresh(main);
-            //printw(outline);
-            free(outline);
-
             std::cout.write(read_msg_.body(), read_msg_.body_length());
             std::cout << "\n";
             do_read_header();
@@ -175,7 +120,7 @@ private:
     boost::asio::async_write(socket_,
         boost::asio::buffer(write_msgs_.front().data(),
           write_msgs_.front().length()),
-        [this](std::error_code ec, std::size_t length)
+        [this](std::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
@@ -199,173 +144,23 @@ private:
   chat_message_queue write_msgs_;
 };
 
-void add_user_to_msg(char line[],std::string userID){
-  char *uid =&userID[0u];
-  //printf("DEBUG: USER ID %s\n",uid);
-  int i=0, j=0;
-  while(uid[i]!='\0'){
-    new_line[i] = uid[i];
-    //printf("%d %c %c \n", i, new_line[i],uid[i]);
-    i++;
-  }
-  new_line[i] = 58;
-  i++;
-  new_line[i] = 32;
-  i++;
-  while(line[j]!='\0'){
-    new_line[i+j]=line[j];
-    //printf("%d  %d %c %c", i, i+j, new_line[i+j],line[j]);
-    j++;
-  }
-  //printf("DEBUG: NEWLINE: %s\n",new_line);
-}
 
-void print_commands(){
-  printf("The current commands supported are: \n");
-  printf("2.) /nick <nickname>");
-  printf("1.) /help \t (prints commands and usage)\n");
-  printf("3.) /quit \t (return to menu)\n");
-  printf("4.) /exit \t (exit the program)\n");
-
-}
-
-bool check_command(std::string c){
-  char *cp_command=(char*)malloc(15*sizeof(char));
-  char *cp_rom=(char*)malloc(150*sizeof(char));
-  if(c[0] == '/'){
-    sscanf(c.c_str(),"%s %150[^\n]",cp_command, cp_rom );
-    //printf("command: %s \n rom: %s\n",cp_command,cp_rom );
-    if(strcmp(cp_command,"/quit")==0){
-      printf("RETURNING \n");
-      return_to_menu=TRUE;
-    }else if(strcmp(cp_command,"/exit")==0){
-      exit(0);
-    }else if(strcmp(cp_command,"/help")==0){
-      print_commands();
-    }else{
-      printf("%s !!NOT A RECOGNIZED COMMAND!!\n", cp_command);
-      printf("Type '/help' to get command list.\n");
-    }
-    free(cp_command);
-    free(cp_rom);
-    return TRUE; //if command do not send
-  }else{
-    free(cp_command);
-    free(cp_rom);
-    return FALSE; //if not command, send
-  }
-
-}
-
-//-------------------------------------------------
-int main(int argc, char* argv[]){
-  //main variables
-  bool running = TRUE;
-  std::string LOCAL_HOST = "127.0.0.1";
-  menu m;
-  //run login screen
-  //continues when logged in or quits when quit_flag is false
-  login l;
-  if (l.quit_flag == FALSE){
-    return 0;
-  }
-  nick = l.get_user();
-menu:
-  return_to_menu = FALSE;
-  running = TRUE;
-  while(running){
-    m.init_menu(l.get_user());
-    running = m.continue_flag;
-    if(m.quit_flag == FALSE){
-      return 0;
-    }
-    erase();
-  }
-  system("clear");
-  ///*
-  try{
-    boost::asio::io_service io_service;
-
-    tcp::resolver resolver(io_service);
-    auto endpoint_iterator = resolver.resolve({LOCAL_HOST, m.get_port()});
-    chat_client c(io_service, endpoint_iterator);
-    std::thread t([&io_service](){ io_service.run(); });
-    char line[chat_message::max_body_length + 1];
-
-    //std::string sline;
-    //c.init_client(l.get_user());
-    //char *uid =&c.get_user()[0u];
-    while (std::cin.getline(line, chat_message::max_body_length + 1)){
-    //while(c.continue_flag){
-      std::string temp(line);
-      bool can_send = check_command(temp);
-      if(!can_send){//false for not command
-        chat_message msg;
-        add_user_to_msg(line,nick);
-        //msg.body_length(std::strlen(line));
-        msg.body_length(std::strlen(new_line));
-        //sline = c.get_input(c.get_inputw(),uid);
-        //sline = get_rlinput(c.get_inputw(),uid);
-        //msg.body_length(sline.length());
-        std::memcpy(msg.body(), new_line, msg.body_length());
-        msg.encode_header();
-        c.write(msg);
-        memset(new_line, 0, sizeof(new_line));
-      }
-      if(return_to_menu==TRUE){
-        c.close();
-        t.join();
-        goto menu;
-      }
-    }
-
-    c.close();
-    t.join();
-
-  }catch (std::exception& e){
-    std::cerr << "Exception: " << e.what() << "\n";
-  }//*/
-
-
-
-
-
-  /*
+int main(int argc, char* argv[])
+{
   try
   {
     Mymenu Mymenu;
+    Mylogin Mylogin;
+    Mygui Mygui;
 
-    boost::asio::io_service io_service;
-    std::string port_num = "9000";
-  	std::string LOCAL_HOST = "127.0.0.1";
-    tcp::resolver resolver(io_service);
-    auto endpoint_iterator = resolver.resolve(LOCAL_HOST, port_num);
-    chat_client c(io_service, endpoint_iterator);
+    boost::asio::io_context io_context;
 
-    std::thread t([&io_service](){ io_service.run(); });
-
-    char line[chat_message::max_body_length + 1];
-    while (std::cin.getline(line, chat_message::max_body_length + 1))
-    {
-      chat_message msg;
-      msg.body_length(std::strlen(line));
-      std::memcpy(msg.body(), line, msg.body_length());
-      msg.encode_header();
-      c.write(msg);
-    }
-
-    c.close();
-    t.join();
-
-
-    boost::boost::asio::io_context io_context;
-
-	       InternetProtocol::endpoint endpoint_type
-
+	/*       InternetProtocol::endpoint endpoint_type           */
+	/*
 		endpoint object; type defined in "basic_resolver.hpp"
+	*/
 
-
-
+	/*
 
 		the resolver object has been created
 
@@ -388,7 +183,7 @@ menu:
     boost::system::error_code ec;
     results_type r = this->get_service().resolve(
         this->get_implementation(), q, ec);
-    boost::boost::asio::detail::throw_error(ec, "resolve");
+    boost::asio::detail::throw_error(ec, "resolve");
     return r;
   }
 
@@ -397,47 +192,46 @@ results_type resolve(const query& q, boost::system::error_code& ec)
     return this->get_service().resolve(this->get_implementation(), q, ec);
   }
 
-results_type resolve(BOOST_boost::asio_STRING_VIEW_PARAM host,
-      BOOST_boost::asio_STRING_VIEW_PARAM service)
+results_type resolve(BOOST_ASIO_STRING_VIEW_PARAM host,
+      BOOST_ASIO_STRING_VIEW_PARAM service)
   {
     return resolve(host, service, resolver_base::flags());
   }
 
+	*/
 
+	/* we will make this starting port number */
+  std::string LOCAL_HOST = "127.0.0.1";
 
-	 we will make this starting port number
-	std::string user_chatroom = "9000";
-  std::string user_created_room = "9000";
-	std::string LOCAL_HOST = "127.0.0.1";
 
 
 	tcp::resolver resolver(io_context);
-
+	/*
 
 		WHEN THE PROGRAM NEEDS TO RUN A NEW SECTION OF THIS CODE (i.e. USER CREATES A NEW CHATROOM)
 		REMEMBER THE RESOLVE FUNCTION TAKES 2 STRING LITERALS AS ARGUMENTS; EXPLANATION FOR
 		RESOLVE() IS STATED ABOVE
 
+	*/
 
-
-
+  /*
     ./chat_client 127.0.0.1 9000
     Hello
     Hello
 
+  */
 
-
-	 WE MIGHT BE ABLE TO DISCARD THE AUTO KEYWORD HERE TO POSSIBLY
-	 DO SOME SORT OF SMART POINTER WORK HERE AND STORE EACH THREAD
-	 AND CHAT_CLIENT OBJECT IN SOME SORT OF CONTAINER AND PULL
-	 THEM OUT ONLY WHEN NEEDED BY USER
-
+	/* WE MIGHT BE ABLE TO DISCARD THE AUTO KEYWORD HERE TO POSSIBLY */
+	/* DO SOME SORT OF SMART POINTER WORK HERE AND STORE EACH THREAD */
+	/* AND CHAT_CLIENT OBJECT IN SOME SORT OF CONTAINER AND PULL     */
+	/* THEM OUT ONLY WHEN NEEDED BY USER                             */
+    /*
     auto endpoints = resolver.resolve(LOCAL_HOST, port_num);
     chat_client c(io_context, endpoints);
     std::thread t([&io_context](){ io_context.run(); });
     char line[chat_message::max_body_length + 1];
-
-
+    */
+	/*
 
 		Objectives of Friday:
 
@@ -448,56 +242,89 @@ results_type resolve(BOOST_boost::asio_STRING_VIEW_PARAM host,
 			=> these 3 options should be focused on first
 
 			=>
+	*/
 
     char compare_string[100];
-  std::cout << "WELCOME TO SUPERCHAT!\n";
+    //std::cout << "WELCOME TO SUPERCHAT!\n";
     //char input[50];
-    int user_choice; // will be a number between 1-3
+    int user_choice= 0; // will be a number between 1-3
 
     int quit_loop = 0;
     std::cout << "Hello, welcome to SUPERCHAT! What would you like to do:\n";
-    while ( !quit_loop )
+    //std::cout<<"1.Enter Lobby\n"<<"2.Login\n"<<"3.Quit";
+
+    user_choice = Mygui.ncurse_mainmenu();
+    while ( quit_loop != 1)
     {
-      Mymenu.print_menu();
-      while ( user_choice != 4)
+
+      while ( user_choice != 3)
       {
-        std::cout << "\n\n<sUpErChAt> ";
-        std::cin >> user_choice;
+
+        //std::cout << "\n\n<sUpErChAt> ";
+        //std::cin >> user_choice;
         if (user_choice==1)//Enter Lobby
         {
           user_created_room = "9000";
           std::cout<<"****WELCOME TO LOBBY****";
+          user_chatroom= user_created_room;
         }
         if(user_choice==2)//enter chatroom
         {
+          user_choice=Mygui.ncurse_loginmenu();
+          if(user_choice==1)
+          {
+          int auth_login = Mylogin.create_account();
+          while(auth_login==0)
+          {
+            std::cout<<"unsuccessful";
+            int auth_login = Mylogin.create_account();
+          }
+          }
+          if(user_choice==2)
+          {
+          int auth_login = Mylogin.login(false);
+          while(auth_login==0)
+          {
+            std::cout<<"unsuccessful";
+            int auth_login = Mylogin.login(false);
+          }
+          }
+            user_choice = Mygui.ncurse_chatroommenu();
+            Mymenu.print_menu();
+            //std::cout << "\n\n<sUpErChAt> ";
+            //std::cin >> user_choice;
           //show available chatrooms
-          int room_available = Mymenu.enter_rooms(user_created_room);//if enter chatroom send 1;if create chatroom send 0;
-          //if 1 check if matches avaiable chatrooms and print available chatrooms;
-          while(room_available==0)
+          if (user_choice==1)
           {
-          std::cout<<"No such chatroom exist";
-          room_available = Mymenu.enter_rooms(user_created_room);
-          }
-          if(room_available>0)
+          user_chatroom = Mymenu.enter_rooms(user_created_room);//
+          if (user_chatroom == "9000")
           {
-          std::cout<<"Room"<<user_created_room;
+            std::cout<<"****WELCOME TO LOBBY****";
           }
-          }
-        if (user_choice==3)//create chatroom
-        {
-          int room_available =Mymenu.create_rooms(user_created_room );
-          if (room_available==1)//successful
+          else
           {
-            std::cout<<"Chatroom"<<user_created_room<<"created\n";
-          }
-        while(room_available!=1)
-        {   std::cout<<"Chatroom Already exist:\n";
-            std::cout<<"Enter a chatroom number again:\n";
-            std::cin>>user_created_room;
-            room_available = Mymenu.create_rooms(user_created_room );
+          std::cout<< "Room "<<user_chatroom;
           }
         }
-          user_chatroom=user_created_room;
+        if (user_choice==2)//create chatroom
+        {
+          user_chatroom = Mymenu.create_rooms(user_created_room );
+          if (user_chatroom == "9000")
+          {
+            std::cout<<"****WELCOME TO LOBBY****";
+          }
+          else
+          {
+          std::cout<< "Room "<<user_chatroom;
+          }
+        }
+        if(user_choice==3)
+        {
+            user_chatroom = Mymenu.delete_rooms(user_created_room );
+            user_chatroom="9000";
+            std::cout<<"****WELCOME TO LOBBY****";
+        }
+      }
           auto endpoints = resolver.resolve(LOCAL_HOST, user_chatroom);
           chat_client c(io_context, endpoints);
           std::thread t([&io_context](){ io_context.run(); });
@@ -512,8 +339,9 @@ results_type resolve(BOOST_boost::asio_STRING_VIEW_PARAM host,
               std::strcpy(compare_string, line);
     	      	msg.encode_header();
     			//msg.message_to_server();
-              if ( strcmp(compare_string,"/exit")==0)
+              if ( strcmp(compare_string,"exit")==0)
               {
+                quit_loop=1;
                 break;
               }
     			c.write(msg);
@@ -528,15 +356,15 @@ results_type resolve(BOOST_boost::asio_STRING_VIEW_PARAM host,
         continue;
       }
 
-      quit_loop = 0;
+      quit_loop = 1;
 
     }
 
 
   catch (std::exception& e)
-    {
-      std::cerr << "Exception: " << e.what() << "\n";
-    }
-  */
+  {
+    std::cerr << "Exception: " << e.what() << "\n";
+  }
+
   return 0;
 }
